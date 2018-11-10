@@ -2,11 +2,11 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from operator import attrgetter
 import re
-import os
 from enum import Enum
 from typing import List
 
 WED_LINE_ENDING = '\n'
+
 
 class RunwayType(Enum):
     LAND_RUNWAY = 100
@@ -97,17 +97,18 @@ class Airport:
         return any(line for line in self.text if line.row_code in row_code_or_codes)
 
     @staticmethod
-    def from_lines(apt_dat_lines, from_file):
+    def from_lines(apt_dat_lines, from_file_name):
         """
-        @type apt_dat_lines: collections.Iterable[AptDatLine]
-        @type from_file: str
+        @type apt_dat_lines: collections.Iterable[AptDatLine|str]
+        @type from_file_name: str
         @rtype: Airport
         """
         for line in apt_dat_lines:
+            line = line if isinstance(line, AptDatLine) else AptDatLine(line)
             if line.is_airport_header():
                 name = ' '.join(line.components[5:])
                 apt_id = line.components[4]
-                out = Airport(name, apt_id, from_file, text=list(apt_dat_lines))
+                out = Airport(name, apt_id, from_file_name, text=list(apt_dat_lines))
                 out.elevation_ft_amsl = float(line.components[1])
                 out.has_atc = bool(int(line.components[2]))  # '0' or '1'
             elif line.is_runway() and not out.latitude:  # You damn well better not have a runway line before your apt header!
@@ -121,6 +122,15 @@ class Airport:
                     out.latitude = float(line.components[2])
                     out.longitude = float(line.components[3])
         return out
+
+    @staticmethod
+    def from_str(file_text, from_file_name):
+        """
+        @type file_text: str
+        @type from_file_name: str
+        @rtype: Airport
+        """
+        return Airport.from_lines((AptDatLine(line) for line in file_text.splitlines()), from_file_name)
 
 
 class AptDat:
