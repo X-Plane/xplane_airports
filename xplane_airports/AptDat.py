@@ -245,6 +245,7 @@ class AptDat:
         """
         :param apt_dat_file_text: The contents of an apt.dat (or ICAO.dat) file
         :type apt_dat_file_text: str
+        :param from_file: Path to the file from which this was read
         :type from_file: str
         """
         return AptDat()._parse_text(apt_dat_file_text, from_file)

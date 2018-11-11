@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='xplane_airports',
-    version='0.0.1',
+    version='1.0.0',
     packages=find_packages(),
     url='https://github.com/X-Plane/xplane_airports',
     license='MIT',
@@ -23,4 +23,5 @@ setup(
         "Development Status :: 4 - Beta",
         "Topic :: Games/Entertainment :: Simulation",
     ],
+    install_requires=['requests']
 )
