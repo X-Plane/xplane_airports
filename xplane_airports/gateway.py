@@ -2,17 +2,15 @@
 Tools for interfacing with the X-Plane Scenery Gateway's API (docs at: https://gateway.x-plane.com/api)
 """
 import base64
-import os
-import shutil
 import zipfile
 import requests
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
 from typing import Union
-from AptDat import AptDat, Airport, WED_LINE_ENDING
+from xplane_airports.AptDat import Airport
 
-GATEWAY_DOMAIN = "https://gateway.x-plane.com"
+GATEWAY_DOMAIN = "https://gateway.x-plane.com"  # The root URL for the Gateway API
 
 
 class GatewayFeature(Enum):
@@ -51,6 +49,7 @@ class GatewayFeature(Enum):
 
 @dataclass
 class GatewayApt:
+    """All the data we get back about an airport when we download a scenery pack via ``scenery_pack()``"""
     apt: Airport                     # Python object with the contents of the apt.dat file
     txt: Union[str, None]            # Contents of the DSF .txt file; airports with no 3D will not include this
     readme: str                      # Contents of the README for this scenery pack
@@ -61,12 +60,11 @@ class GatewayApt:
 
 def airports():
     """
-    Queries the Scenery Gateway for all the airports it knows about.
+    Queries the Scenery Gateway for all the airports it knows about. Note that the download size is greater than 1 MB.
     Documented at: https://gateway.x-plane.com/api#get-all-airports
-    @return: A dict with metadata on all 35,000+ airports; keys are X-Plane identifiers
-             (which may or may not correspond to ICAO identifiers), and values are various
-             airport metadata.
-    @rtype: dict
+
+    :returns: A dict with metadata on all 35,000+ airports; keys are X-Plane identifiers (which may or may not correspond to ICAO identifiers), and values are various airport metadata.
+    :rtype: dict
 
     >>> airports()['KSEA']
     {'AirportCode': 'KSEA', 'AirportName': 'Seattle Tacoma Intl', 'AirportClass': None, 'Latitude': 47, 'Longitude': -122, 'Elevation': None, 'Deprecated': None, 'DeprecatedInFavorOf': None, 'AcceptedSceneryCount': 2, 'ApprovedSceneryCount': 2, 'ExcludeSubmissions': 0, 'RecommendedSceneryId': 45283, 'Status': 'Scenery Submitted', 'SceneryType': 0, 'SubmissionCount': 2}
@@ -81,17 +79,20 @@ def airport(airport_id):
     """
     Queries the Scenery Gateway for metadata on a single airport, plus metadata on all the scenery packs uploaded for that airport.
     Documented at: https://gateway.x-plane.com/api#get-a-single-airport
-    @param airport_id: The identifier of the airport on the Gateway (may or may not be an ICAO ID)
-    @type airport_id: str
-    @return: A dict with metadata the airport
-    @rtype: dict
+
+    :param airport_id: The identifier of the airport on the Gateway (may or may not be an ICAO ID)
+    :type airport_id: str
+
+    :returns: A dict with metadata about the airport
+    :rtype: dict
 
     >>> expected_keys = {'icao', 'airportName', 'airportClass', 'latitude', 'longitude', 'elevation', 'acceptedSceneryCount', 'approvedSceneryCount', 'recommendedSceneryId', 'scenery'}
     >>> ksea = airport('KSEA')
     >>> all(key in ksea for key in expected_keys)
     True
 
-    # Includes metadata of all scenery packs uploaded for this airport
+    Includes metadata of all scenery packs uploaded for this airport:
+
     >>> len(airport('KSEA')['scenery']) >= 9
     True
 
@@ -107,25 +108,29 @@ def airport(airport_id):
 def recommended_scenery_packs(selective_apt_ids=None):
     """
     A generator to iterate over the recommended scenery packs for all (or just the selected) airports on the Gateway.
-    Downloads and unzips each scenery pack into the working directory, and optionally cleans up those files when the program terminates.
-    @param selective_apt_ids: If None, we will download scenery for all 35,000+ airports;
-                              if a list of airport IDs (as returned by `airports()`), the airports whose recommended packs we should download.
-    @type selective_apt_ids: collections.Iterable[str]|None
-    @rtype collections.Iterable[GatewayApt]
+    Downloads and unzips all files into memory.
 
-    # Easily request a subset of airports
+    :param selective_apt_ids: If ``None``, we will download scenery for all 35,000+ airports; if a list of airport IDs (as returned by ``airports()``), the airports whose recommended packs we should download.
+    :type selective_apt_ids: Union[collections.Iterable[str], None]
+
+    :returns: A generator of the recommended scenery packs; each pack contains the same data as a call to ``scenery_pack()`` directly
+    :rtype: collections.Iterable[GatewayApt]
+
+    Easily request a subset of airports:
+
     >>> packs = recommended_scenery_packs(['KSEA', 'KLAX', 'KBOS'])
     >>> len(list(packs)) == 3 and all(isinstance(pack, GatewayApt) for pack in packs)
     True
 
-    # Audit airports for specific features
+    Audit airports for specific features:
+
     >>> all_3d = True
     >>> all_have_atc_flow = True
     >>> all_have_taxi_route = True
     >>> for pack in recommended_scenery_packs(['KATL', 'KORD', 'KDFW', 'KLAX']):
     ...     all_3d &= pack.pack_metadata['type'] == '3D' and pack.txt is not None
-    ...     all_have_atc_flow &= GatewayFeature.HasATCFlow in pack.pack_metadata['features'] and pack.apt.has_traffic_flow()
-    ...     all_have_taxi_route &= GatewayFeature.HasTaxiRoute in pack.pack_metadata['features'] and pack.apt.has_taxi_route()
+    ...     all_have_atc_flow &= GatewayFeature.HasATCFlow in pack.pack_metadata['features'] and pack.apt.has_traffic_flow
+    ...     all_have_taxi_route &= GatewayFeature.HasTaxiRoute in pack.pack_metadata['features'] and pack.apt.has_taxi_route
     >>> all_3d and all_have_atc_flow and all_have_taxi_route
     True
     """
@@ -142,10 +147,13 @@ def recommended_scenery_packs(selective_apt_ids=None):
 
 def scenery_pack(pack_to_download):
     """
-    @param pack_to_download: If int, the scenery ID of the pack to be downloaded; if str, the airport whose recommended pack we should download.
-    @type pack_to_download: Union[str, int]
-    @return the downloaded files and the metadata about the scenery pack
-    @rtype GatewayApt
+    Downloads a single scenery pack, including its apt.dat and any associated DSF from the Gateway, and unzips it into memory.
+
+    :param pack_to_download: If ``int``, the scenery ID of the pack to be downloaded; if ``str``, the airport whose recommended pack we should download.
+    :type pack_to_download: Union[str, int]
+
+    :returns: the downloaded files and the metadata about the scenery pack
+    :rtype: GatewayApt
 
     >>> expected_keys = {'sceneryId', 'parentId', 'icao', 'aptName', 'userId', 'userName', 'dateUploaded', 'dateAccepted', 'dateApproved', 'dateDeclined', 'type', 'features', 'artistComments', 'moderatorComments', 'additionalMetadata', 'masterZipBlob'}
     >>> ksea_pack_metadata = scenery_pack('KSEA').pack_metadata
