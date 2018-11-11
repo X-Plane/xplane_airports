@@ -54,14 +54,13 @@ class AptDatLine:
 
 @dataclass
 class Airport:
-    name: str
-    id: str
-    from_file: str = ''
-    has_atc: bool = False
-    elevation_ft_amsl: float = 0
-    latitude: float = 0
-    longitude: float = 0
-    text: List[AptDatLine] = field(default_factory=list)
+    """A single airport from an apt.dat file."""
+    name: str                     # The name of the airport, like "Seattle-Tacoma Intl"
+    id: str                       # The X-Plane identifier for the airport, which may or may not correspond to its ICAO ID
+    from_file: str = ''           # Path to the apt.dat file from which this airport was read
+    has_atc: bool = False         # True if the airport header indicates the airport has air traffic control
+    elevation_ft_amsl: float = 0  # The elevation, in feat above mean sea level, indicated in the airport header line
+    text: List[AptDatLine] = field(default_factory=list)  # The complete text of the portion of the apt.dat file pertaining to this airport
 
     def __bool__(self):
         return bool(self.id)
@@ -96,32 +95,56 @@ class Airport:
             return any(line for line in self.text if line.row_code == row_code_or_codes)
         return any(line for line in self.text if line.row_code in row_code_or_codes)
 
+    @property
+    def latitude(self):
+        """
+        :return: The latitude of the airport, which X-Plane calculates as the latitude of the center of the first runway.
+        :rtype: float
+        """
+        runways = list(line for line in self.text if line.is_runway())
+        assert runways, "Airport appears to have no runway lines"
+        rwy_0 = runways[0]
+        if rwy_0.runway_type == RunwayType.LAND_RUNWAY:
+            return 0.5 * (float(rwy_0.tokens[9]) + float(rwy_0.tokens[18]))
+        elif rwy_0.runway_type == RunwayType.WATER_RUNWAY:
+            return 0.5 * (float(rwy_0.tokens[4]) + float(rwy_0.tokens[7]))
+        elif rwy_0.runway_type == RunwayType.HELIPAD:
+            return float(rwy_0.tokens[2])
+
+    @property
+    def longitude(self):
+        """
+        :return: The longitude of the airport, which X-Plane calculates as the longitude of the center of the first runway.
+        :rtype: float
+        """
+        runways = list(line for line in self.text if line.is_runway())
+        assert runways, "Airport appears to have no runway lines"
+        rwy_0 = runways[0]
+        if rwy_0.runway_type == RunwayType.LAND_RUNWAY:
+            return 0.5 * (float(rwy_0.tokens[10]) + float(rwy_0.tokens[19]))
+        elif rwy_0.runway_type == RunwayType.WATER_RUNWAY:
+            return 0.5 * (float(rwy_0.tokens[5]) + float(rwy_0.tokens[8]))
+        elif rwy_0.runway_type == RunwayType.HELIPAD:
+            return float(rwy_0.tokens[3])
+
     @staticmethod
     def from_lines(apt_dat_lines, from_file_name):
         """
-        @type apt_dat_lines: collections.Iterable[AptDatLine|str]
-        @type from_file_name: str
-        @rtype: Airport
+        :type apt_dat_lines: collections.Iterable[AptDatLine|str]
+        :param from_file_name: The name of the apt.dat file you read this airport in from
+        :type from_file_name: str
+        :rtype: Airport
         """
-        for line in apt_dat_lines:
-            line = line if isinstance(line, AptDatLine) else AptDatLine(line)
-            if line.is_airport_header():
-                name = ' '.join(line.components[5:])
-                apt_id = line.components[4]
-                out = Airport(name, apt_id, from_file_name, text=list(apt_dat_lines))
-                out.elevation_ft_amsl = float(line.components[1])
-                out.has_atc = bool(int(line.components[2]))  # '0' or '1'
-            elif line.is_runway() and not out.latitude:  # You damn well better not have a runway line before your apt header!
-                if line.runway_type == RunwayType.LAND_RUNWAY:
-                    out.latitude = float(line.components[9])
-                    out.longitude = float(line.components[10])
-                elif line.runway_type == RunwayType.WATER_RUNWAY:
-                    out.latitude = float(line.components[4])
-                    out.longitude = float(line.components[5])
-                elif line.runway_type == RunwayType.HELIPAD:
-                    out.latitude = float(line.components[2])
-                    out.longitude = float(line.components[3])
-        return out
+        lines = list(line if isinstance(line, AptDatLine) else AptDatLine(line) for line in apt_dat_lines)
+        apt_header_lines = list(line for line in lines if line.is_airport_header())
+        assert len(apt_header_lines), "Failed to find an airport header line in airport from file %s" % from_file_name
+        assert len(apt_header_lines) == 1, "Expected only one airport header line in airport from file %s" % from_file_name
+        return Airport(name=' '.join(apt_header_lines[0].tokens[5:]),
+                       id=apt_header_lines[0].tokens[4],
+                       from_file=from_file_name,
+                       elevation_ft_amsl=float(apt_header_lines[0].tokens[1]),
+                       has_atc=bool(int(apt_header_lines[0].tokens[2])),  # '0' or '1'
+                       text=lines)
 
     @staticmethod
     def from_str(file_text, from_file_name):
