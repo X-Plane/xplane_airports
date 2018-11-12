@@ -5,10 +5,10 @@
 
 This includes the following major components:
 
-1. [The `AptDat` module](#the-aptdat-module): used to parse & query raw `apt.dat` files (e.g., the files stored on disk in your X-Plane installation)
-    - [`AptDat.AptDat`](#aptdataptdat): A parser for X-Plane's airport data files (which may contain more than 35,000 airports); a collection of [`Airport`](#aptdatairport) objects
-    - [`Airport`](#aptdatairport): An object to represent an individual airport from an `apt.dat` file.
-2. [The `gateway` module](#the-gateway-module): used to interact with [the X-Plane Scenery Gateway](https://gateway.x-plane.com) to get information about what airports are available, and to download individual scenery packs contributed by the community.
+1. [The `AptDat` module](#the-aptdat-module): Used to parse & query raw `apt.dat` files (e.g., the files stored on disk in your X-Plane installation)
+    - The [`AptDat`](#aptdataptdat) class itself: A parser for X-Plane's airport data files (which may contain more than 35,000 airports); a collection of [`Airport`](#aptdatairport) objects
+    - The [`Airport`](#aptdatairport) class: Represents an individual airport from an `apt.dat` file.
+2. [The `gateway` module](#the-gateway-module): Used to interact with [the X-Plane Scenery Gateway](https://gateway.x-plane.com) to get information about what airports are available, and to download individual scenery packs contributed by the community.
     - [`airports()`](#xplane_airportsgatewayairports---dict): Queries for metadata on all 35,000+ airports on the Gateway. 
     - [`airport()`](#xplane_airportsgatewayairportairport_id---dict): Queries the Gateway for information about the specified airport itself, as well as metadata on all scenery packs submitted for it. Unlike [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt), though, this does *not* include actual `apt.dat` or DSF data. 
     - [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt): Downloads either the recommended pack for the specified airport, or the scenery pack with the specified `int` ID. Includes both the `apt.dat` data and DSF, where applicable.
@@ -27,35 +27,35 @@ A container class for [`Airport`](#aptdatairport) objects. Parses X-Plane’s gi
 Field `airports`\
 Type: list\[Airport\]
 
-_static_ `from_file_text`(_apt\_dat\_file\_text_, _from\_file_)\
+**Static method** `from_file_text`(_apt\_dat\_file\_text_, _from\_file_)\
 Parameters:
 
 - **apt\_dat\_file\_text** (_str_): The contents of an apt.dat (or ICAO.dat) file
 - **from\_file** (_str_): Path to the file from which this was read
 
-Property `ids`\
+**Property** `ids`\
 A generator containing the X-Plane IDs of all airports in the collection. Note that these IDs may or may not correspond to the airports’ ICAO identifiers.\
 Type: collection.Iterable\[str\]
 
-Property `names`\
+**Property** `names`\
 A generator containing the names of all airports in the collection\
 Type: collection.Iterable\[str\]
 
-Method `search_by_id`(_apt\_id_)\
+**Method** `search_by_id`(_apt\_id_)\
 Parameter: **apt\_id** (_str_) – The X-Plane ID of the airport you want to query\
 Returns: The airport with the specified ID, or `None` if no matching airport exists in this collection.\
 Return type: Union\[[Airport](#aptdatairport), None\]
 
-Method `search_by_name`(_apt\_name_)\
+**Method** `search_by_name`(_apt\_name_)\
 Parameter: **apt\_name** (_str_) – The name of the airport you want to query\
 Returns: All airports that match the specified name, case-insensitive (an empty list if no airports match)
 Return type: list\[[Airport](#aptdatairport)\]
 
-Method `search_by_predicate`(_predicate\_fn_)\
+**Method** `search_by_predicate`(_predicate\_fn_)\
 Parameter: **predicate\_fn** (_(_[_Airport_](#aptdatairport)_)_ _\-> bool_) – We will collect all airports for which this function returns `True`\
 Return type: list\[[Airport](#aptdatairport)\]
 
-Method `sort`(_key='name'_)\
+**Method** `sort`(_key='name'_)\
 By default, we store the airport data in whatever order we read it from the apt.dat file. When you call sort, though, we’ll ensure that it’s in order (default to name order, just like it’s always been in the shipping versions of X-Plane).\
 Parameter: **key** (_str_) – The [Airport](#aptdatairport) key to sort on
 
@@ -74,7 +74,7 @@ Dataclass members:
 - _elevation_ft_amsl_ (float; default 0): The elevation, in feat above mean sea level, indicated in the airport header line
 - _text_ (List\[[AptDatLine](#aptdataptdatline)\]; default empty): The complete text of the portion of the apt.dat file pertaining to this airport
 
-_static_ `from_lines`(_apt\_dat\_lines_, _from\_file\_name_) -> [Airport](#aptdatairport)\
+**Static method** `from_lines`(_apt\_dat\_lines_, _from\_file\_name_) -> [Airport](#aptdatairport)\
 Parameters:\
 
 - **from\_file\_name** (_str_) – The name of the apt.dat file you read this airport in from
@@ -86,31 +86,31 @@ Parameters:
 - **file\_text** (_str_) – The portion of the apt.dat file text that specifies this airport
 - **from\_file\_name** (_str_) – The name of the apt.dat file you read this airport in from
 
-Property `has_comm_freq` (bool)\
+**Property** `has_comm_freq` (bool)\
 True if this airport defines communication radio frequencies for interacting with ATC\
 
-Property `has_ground_routes` (bool)\  
+**Property** `has_ground_routes` (bool)\  
 True if this airport defines any destinations for ground vehicles (like baggage cars, fuel trucks, etc.), ground truck parking locations, or taxi routes\
 
-Property `has_taxi_route` (bool)\
+**Property** `has_taxi_route` (bool)\
 True if this airport defines routing rules for ATC’s use of its taxiways.\
 
-Property `has_taxiway` (bool)\
+**Property** `has_taxiway` (bool)\
 True if this airport defines any taxiway geometry\
 
-Property `has_taxiway_sign` (bool)\
+**Property** `has_taxiway_sign` (bool)\
 True if this airport defines any taxi signs\
 
-Property `has_traffic_flow` (bool)\
+**Property** `has_traffic_flow` (bool)\
 True if this airport defines rules for when and under what conditions certain runways should be used by ATC\
 
-Property `latitude` (float)\
+**Property** `latitude` (float)\
 The latitude of the airport, which X-Plane calculates as the latitude of the center of the first runway.\
 
-Property `longitude` (float)\
+**Property** `longitude` (float)\
 The longitude of the airport, which X-Plane calculates as the longitude of the center of the first runway.\
 
-Method `has_row_code`(_row\_code\_or\_codes_) -> bool\
+**Method** `has_row_code`(_row\_code\_or\_codes_) -> bool\
 True if the airport has any lines in its text that begin with the specified row code(s)\
 Parameter: **row\_code\_or\_codes** (_Union__\[__int__,_ _str__,_ _collections.Iterable__\[__int__\]__\]_) – One or more “row codes” (the first token at the beginning of a line; almost always int)
 
@@ -120,22 +120,22 @@ A single line from an `apt.dat` file.
 
 _class_ `xplane_airports.AptDat.AptDatLine`(_line\_text_)
 
-Method `is_airport_header`() -> bool\
+**Method** `is_airport_header`() -> bool\
 True if this line marks the beginning of an airport, seaport, or heliport
 
-Method `is_file_header`() -> bool
+**Method** `is_file_header`() -> bool
 True if this is part of an apt.dat file header
 
-Method `is_ignorable`() -> bool\
+**Method** `is_ignorable`() -> bool\
 True if this line carries no semantic value for any airport in the apt.dat file.
 
-Method `is_runway`() -> bool\
+**Method** `is_runway`() -> bool\
 True if this line represents a land runway, waterway, or helipad
 
-Method `runway_type` -> [RunwayType](#aptdatrunwaytype)\
+**Method** `runway_type` -> [RunwayType](#aptdatrunwaytype)\
 The type of runway represented by this line
 
-Property `tokens` -> list\[str\]\
+**Property** `tokens` -> list\[str\]\
 The tokens in this line
 
 ### AptDat.RunwayType
