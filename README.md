@@ -107,6 +107,10 @@ Return type: list\[[Airport](#aptdatairport)\]
 By default, we store the airport data in whatever order we read it from the apt.dat file. When you call sort, though, we’ll ensure that it’s in order (default to name order, just like it’s always been in the shipping versions of X-Plane).\
 Parameter: **key** (_str_) – The [Airport](#aptdatairport) key to sort on
 
+**Method** `write_to_disk`(_path_to_write_to_)\
+Writes a complete apt.dat file containing this entire collection of airports.\
+Parameter: **path_to_write_to** (_str_) – A complete file path (ending in .dat)
+
 ### AptDat.Airport
 
 A single airport from an apt.dat file.
@@ -164,6 +168,10 @@ The longitude of the airport, which X-Plane calculates as the longitude of the c
 **Method** `has_row_code`(_row\_code\_or\_codes_) -> bool\
 True if the airport has any lines in its text that begin with the specified row code(s)\
 Parameter: **row\_code\_or\_codes** (_Union__\[__int__,_ _str__,_ _collections.Iterable__\[__int__\]__\]_) – One or more “row codes” (the first token at the beginning of a line; almost always int)
+
+**Method** `write_to_disk`(_path_to_write_to_)\
+Writes a complete apt.dat file containing just this airport.\
+Parameter: **path_to_write_to** (_str_) – A complete file path (ending in .dat)
 
 ### AptDat.AptDatLine
 
