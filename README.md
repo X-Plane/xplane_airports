@@ -5,10 +5,10 @@
 
 This includes the following major components:
 
-1. The `AptDat` module: used to parse & query raw `apt.dat` files (e.g., the files stored on disk in your X-Plane installation)
+1. [The `AptDat` module](#the-aptdat-module): used to parse & query raw `apt.dat` files (e.g., the files stored on disk in your X-Plane installation)
     - [`AptDat.AptDat`](#aptdataptdat): A parser for X-Plane's airport data files (which may contain more than 35,000 airports); a collection of [`Airport`](#aptdatairport) objects
     - [`Airport`](#aptdatairport): An object to represent an individual airport from an `apt.dat` file.
-2. The `gateway` module: used to interact with [the X-Plane Scenery Gateway](https://gateway.x-plane.com) to get information about what airports are available, and to download individual scenery packs contributed by the community.
+2. [The `gateway` module](#the-gateway-module): used to interact with [the X-Plane Scenery Gateway](https://gateway.x-plane.com) to get information about what airports are available, and to download individual scenery packs contributed by the community.
     - [`airports()`](#xplane_airportsgatewayairports---dict): Queries for metadata on all 35,000+ airports on the Gateway. 
     - [`airport()`](#xplane_airportsgatewayairportairport_id---dict): Queries the Gateway for information about the specified airport itself, as well as metadata on all scenery packs submitted for it. Unlike [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt), though, this does *not* include actual `apt.dat` or DSF data. 
     - [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt): Downloads either the recommended pack for the specified airport, or the scenery pack with the specified `int` ID. Includes both the `apt.dat` data and DSF, where applicable.
