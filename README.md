@@ -71,10 +71,9 @@ _class_ `AptDat.AptDat`(_path\_to\_file=None_)
 
 A container class for [`Airport`](#aptdatairport) objects. Parses X-Plane’s gigantic `apt.dat` files, which may have data on hundreds of airports.
 
-Field `airports`\
-Type: list\[Airport\]
+**Field** `airports` (list\[Airport\])
 
-**Static method** `from_file_text`(_apt\_dat\_file\_text_, _from\_file_)\
+**Static method** `from_file_text`(_apt\_dat\_file\_text_, _from\_file_) -> [`AptDat`](#aptdataptdat)\
 Parameters:
 
 - **apt\_dat\_file\_text** (_str_): The contents of an apt.dat (or ICAO.dat) file
