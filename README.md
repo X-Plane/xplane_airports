@@ -53,6 +53,8 @@ print("KSEA downloaded from the Gateway begins:")
 print(ksea_recommended_pack.apt.head())
 ```
 
+More sample code is available in the doctests in [the `gateway` module](#the-gateway-module) docs below.
+
 ## The `AptDat` module
 
 Tools for reading, inspecting, and manipulating X-Plane’s airport (apt.dat) files.
