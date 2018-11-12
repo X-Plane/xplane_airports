@@ -80,7 +80,7 @@ Parameters:\
 - **from\_file\_name** (_str_) – The name of the apt.dat file you read this airport in from
 - **apt\_dat\_lines** (_collections.Iterable\[[AptDatLine](#aptdataptdatline)|str\]_) – The lines of the apt.dat file (either strings or parsed AptDatLine objects)
 
-_static_ `from_str`(_file\_text_, _from\_file\_name_) -> [Airport](#aptdatairport)\
+**Static method** `from_str`(_file\_text_, _from\_file\_name_) -> [Airport](#aptdatairport)\
 Parameters:
 
 - **file\_text** (_str_) – The portion of the apt.dat file text that specifies this airport
