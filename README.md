@@ -14,6 +14,45 @@ This includes the following major components:
     - [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt): Downloads either the recommended pack for the specified airport, or the scenery pack with the specified `int` ID. Includes both the `apt.dat` data and DSF, where applicable.
     - [`recommended_scenery_packs()`](#xplane_airportsgatewayrecommended_scenery_packsselective_apt_idsnone---collectionsiterablegatewayapt): A generator equivalent to calling [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt) to download the recommended scenery pack for every airport (or only a preselected list of airports, at your discretion).
 
+## Sample code
+
+### Parsing the default apt.dat file in your local X-Plane installation
+
+```python
+from xplane_airports.AptDat import AptDat, Airport
+
+xplane_installation = input("Path to your X-Plane installation: ")
+print("Reading 35,000+ airports from disk")
+default_xplane_apt_dat = AptDat(xplane_installation + 'Resources/default scenery/default apt dat/Earth nav data/apt.dat')
+print("%d airports found in your default apt.dat\n" % len(default_xplane_apt_dat))
+
+ksea = default_xplane_apt_dat['KSEA']
+""":type ksea: Airport"""
+print("KSEA's airport data on disk begins:")
+print(ksea.head())
+```
+
+### Getting metadata on airports from the Gateway
+
+```python
+from xplane_airports.gateway import airports
+all_apts = airports()
+print("There are %d airports on the X-Plane Scenery Gateway" % len(all_apts))
+print("KSEA has the following metadata on the Gateway:")
+for key, value in all_apts['KSEA'].items():
+    print('\t' + key + ':', value)
+```
+
+### Downloaded the recommended scenery pack for an airport from the Gateway
+
+```python
+from xplane_airports.gateway import scenery_pack, GatewayApt
+ksea_recommended_pack = scenery_pack('KSEA')
+""":type ksea_recommended_pack: GatewayApt"""
+print("KSEA downloaded from the Gateway begins:")
+print(ksea_recommended_pack.apt.head())
+```
+
 ## The `AptDat` module
 
 Tools for reading, inspecting, and manipulating X-Plane’s airport (apt.dat) files.
@@ -85,6 +124,9 @@ Parameters:
 
 - **file\_text** (_str_) – The portion of the apt.dat file text that specifies this airport
 - **from\_file\_name** (_str_) – The name of the apt.dat file you read this airport in from
+
+**Method** `head(num_lines=10)` -> str\
+Returns the first `num_lines` of the `apt.dat` text for this airport
 
 **Property** `has_comm_freq` (bool)\
 True if this airport defines communication radio frequencies for interacting with ATC\

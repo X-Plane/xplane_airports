@@ -100,6 +100,14 @@ class Airport:
     def __str__(self):
         return WED_LINE_ENDING.join(line.raw for line in self.text)
 
+    def head(self, num_lines=10):
+        """
+        :param num_lines: The max number of lines to return
+        :return: The first `num_lines` of the apt.dat text for this airport
+        :rtype: str
+        """
+        return WED_LINE_ENDING.join(line.raw for i, line in enumerate(self.text) if i < num_lines)
+
     @property
     def has_taxiway(self):
         """
@@ -357,6 +365,9 @@ class AptDat:
 
     def __iter__(self):
         return (apt for apt in self.airports)
+
+    def __len__(self):
+        return len(self.airports)
 
     def __concat__(self, other):
         """
