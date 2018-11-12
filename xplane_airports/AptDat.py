@@ -194,6 +194,7 @@ class Airport:
     @staticmethod
     def from_lines(apt_dat_lines, from_file_name):
         """
+        :param apt_dat_lines: The lines of the apt.dat file (either strings or parsed AptDatLine objects)
         :type apt_dat_lines: collections.Iterable[AptDatLine|str]
         :param from_file_name: The name of the apt.dat file you read this airport in from
         :type from_file_name: str

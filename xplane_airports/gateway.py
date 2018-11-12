@@ -1,5 +1,7 @@
 """
-Tools for interfacing with the X-Plane Scenery Gateway's API (docs at: https://gateway.x-plane.com/api)
+Tools for interfacing with the X-Plane Scenery Gateway's API.
+
+Docs at: https://gateway.x-plane.com/api
 """
 import base64
 import zipfile
