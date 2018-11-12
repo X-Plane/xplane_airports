@@ -16,6 +16,8 @@ This includes the following major components:
 
 ## Installation instructions
 
+`xplane_airports` requires Python 3.7.
+
 Install via pip with:
 
 `$ pip install xplane_airports`
