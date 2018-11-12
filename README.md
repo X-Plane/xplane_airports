@@ -14,6 +14,12 @@ This includes the following major components:
     - [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt): Downloads either the recommended pack for the specified airport, or the scenery pack with the specified `int` ID. Includes both the `apt.dat` data and DSF, where applicable.
     - [`recommended_scenery_packs()`](#xplane_airportsgatewayrecommended_scenery_packsselective_apt_idsnone---collectionsiterablegatewayapt): A generator equivalent to calling [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt) to download the recommended scenery pack for every airport (or only a preselected list of airports, at your discretion).
 
+## Installation instructions
+
+Install via pip with:
+
+`$ pip install xplane_airports`
+
 ## Sample code
 
 ### Parsing the default apt.dat file in your local X-Plane installation
