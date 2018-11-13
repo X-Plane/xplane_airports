@@ -18,6 +18,8 @@ class RunwayType(Enum):
     WATER_RUNWAY = 101
     HELIPAD = 102
 
+    def __int__(self):
+        return self.value
 
 class AptDatLine:
     """
@@ -37,7 +39,7 @@ class AptDatLine:
         :returns: True if this line represents a land runway, waterway, or helipad
         :rtype: bool
         """
-        return self.row_code in [100, 101, 102]
+        return self.row_code in [int(RunwayType.LAND_RUNWAY), int(RunwayType.WATER_RUNWAY), int(RunwayType.HELIPAD)]
 
     def is_ignorable(self):
         """
