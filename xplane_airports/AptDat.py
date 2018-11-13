@@ -180,6 +180,18 @@ class Airport:
             return any(line for line in self.text if line.row_code == row_code_or_codes)
         return any(line for line in self.text if line.row_code in row_code_or_codes)
 
+    @staticmethod
+    def _rwy_center(rwy, start, end):
+        """
+        :param rwy: Runway line
+        :type rwy: AptDatLine
+        :param start: index of the start coordinate in the tokens property of the runway
+        :param end: index of the end coordinate in the tokens property of the runway
+        :returns: Runway center
+        """
+        assert isinstance(rwy, AptDatLine)
+        return 0.5 * (float(rwy.tokens[start]) + float(rwy.tokens[end]))
+
     @property
     def latitude(self):
         """
@@ -190,9 +202,9 @@ class Airport:
         assert runways, "Airport appears to have no runway lines"
         rwy_0 = runways[0]
         if rwy_0.runway_type == RunwayType.LAND_RUNWAY:
-            return 0.5 * (float(rwy_0.tokens[9]) + float(rwy_0.tokens[18]))
+            return Airport._rwy_center(rwy_0, 9, 18)
         elif rwy_0.runway_type == RunwayType.WATER_RUNWAY:
-            return 0.5 * (float(rwy_0.tokens[4]) + float(rwy_0.tokens[7]))
+            return Airport._rwy_center(rwy_0, 4, 7)
         elif rwy_0.runway_type == RunwayType.HELIPAD:
             return float(rwy_0.tokens[2])
 
@@ -206,9 +218,9 @@ class Airport:
         assert runways, "Airport appears to have no runway lines"
         rwy_0 = runways[0]
         if rwy_0.runway_type == RunwayType.LAND_RUNWAY:
-            return 0.5 * (float(rwy_0.tokens[10]) + float(rwy_0.tokens[19]))
+            return Airport._rwy_center(rwy_0, 10, 19)
         elif rwy_0.runway_type == RunwayType.WATER_RUNWAY:
-            return 0.5 * (float(rwy_0.tokens[5]) + float(rwy_0.tokens[8]))
+            return Airport._rwy_center(rwy_0, 5, 8)
         elif rwy_0.runway_type == RunwayType.HELIPAD:
             return float(rwy_0.tokens[3])
 
