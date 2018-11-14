@@ -1,6 +1,8 @@
 `xplane_airports`: Tools for working with X-Plane airport data
 ============================================================================================================================================================
 
+[![CircleCI](https://circleci.com/gh/X-Plane/xplane_airports/tree/master.svg?style=svg)](https://circleci.com/gh/X-Plane/xplane_airports/tree/master)
+
 `xplane_airports` is a Python package for interacting with [X-Plane](https://www.x-plane.com)'s airport data ([`apt.dat`](https://developer.x-plane.com/article/airport-data-apt-dat-file-format-specification/)) files.
 
 This includes the following major components:
