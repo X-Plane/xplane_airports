@@ -1,5 +1,5 @@
 from unittest import TestCase
-from AptDat import Airport, AptDat
+from xplane_airports.AptDat import Airport, AptDat
 
 
 class TestAptDat(TestCase):

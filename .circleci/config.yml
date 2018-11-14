@@ -1,0 +1,33 @@
+# Python CircleCI 2.0 configuration file
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.7.0
+
+    working_directory: ~/xplane_airports
+
+    steps:
+      - checkout
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+      - run:
+          name: test the gateway module
+          command: |
+            . venv/bin/activate
+            python -m doctest -v xplane_airports/gateway.py
+
+      - run:
+          name: test the AptDat module
+          command: |
+            . venv/bin/activate
+            python -m unittest xplane_airports/test_AptDat.py
+
+      - store_test_results:
+          path: test-results
