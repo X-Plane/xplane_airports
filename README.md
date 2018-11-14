@@ -1,4 +1,4 @@
-`xplane_airports`: Tools for working with X-Plane airport data
+Tools for working with X-Plane airport data
 ============================================================================================================================================================
 
 [![CircleCI](https://circleci.com/gh/X-Plane/xplane_airports/tree/master.svg?style=svg)](https://circleci.com/gh/X-Plane/xplane_airports/tree/master)
