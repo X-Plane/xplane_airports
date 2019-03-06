@@ -192,7 +192,7 @@ def scenery_pack(pack_to_download):
     pack = _gateway_json_request("/apiv1/scenery/%d" % pack_to_download, 'scenery')
     if pack['features']:
         assert isinstance(pack['features'], str), 'The JSON decoder mangled our text-list of feature IDs'
-        pack['features'] = list(GatewayFeature(int(feature_str)) for feature_str in pack['features'].split(',') if feature_str != '0')
+        pack['features'] = list(GatewayFeature(int(feature_str)) for feature_str in pack['features'].split(',') if int(feature_str) in list(map(int, GatewayFeature)))
     return unzip_pack_to_memory(BytesIO(base64.b64decode(pack['masterZipBlob'])), pack, apt_metadata)
 
 
