@@ -6,13 +6,13 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from operator import attrgetter
 import re
-from enum import Enum
+from enum import IntEnum
 from typing import List
 
 WED_LINE_ENDING = '\n'
 
 
-class RowCode(Enum):
+class RowCode(IntEnum):
     AIRPORT_HEADER		= 1
     _RUNWAY_OLD			= 10  # Legacy runway/taxiway record from X-Plane 8.10 and earlier
     TOWER_LOCATION		= 14
@@ -87,7 +87,7 @@ class RowCode(Enum):
         return str(self.value)
 
 
-class RunwayType(Enum):
+class RunwayType(IntEnum):
     """Row codes used to identify different types of runways"""
     LAND_RUNWAY = RowCode.LAND_RUNWAY
     WATER_RUNWAY = RowCode.WATER_RUNWAY

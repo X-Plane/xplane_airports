@@ -7,7 +7,7 @@ import base64
 import zipfile
 import requests
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum
 from io import BytesIO
 from typing import Union
 from xplane_airports.AptDat import Airport
@@ -15,7 +15,7 @@ from xplane_airports.AptDat import Airport
 GATEWAY_DOMAIN = "https://gateway.x-plane.com"  # The root URL for the Gateway API
 
 
-class GatewayFeature(Enum):
+class GatewayFeature(IntEnum):
     """
     Features that may be used to tag scenery packs on the Gateway.
     Note that these are subject to frequent addition/removal/change;
