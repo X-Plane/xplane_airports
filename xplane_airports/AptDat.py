@@ -303,23 +303,23 @@ class Airport:
             return float(rwy_0.tokens[3])
 
     @staticmethod
-    def from_lines(apt_dat_lines, from_file_name):
+    def from_lines(dat_lines, from_file_name):
         """
-        :param apt_dat_lines: The lines of the apt.dat file (either strings or parsed AptDatLine objects)
-        :type apt_dat_lines: collections.Iterable[AptDatLine|str]
+        :param dat_lines: The lines of the apt.dat file (either strings or parsed AptDatLine objects)
+        :type dat_lines: collections.Iterable[AptDatLine|str]
         :param from_file_name: The name of the apt.dat file you read this airport in from
         :type from_file_name: str
         :rtype: Airport
         """
-        lines = list(line if isinstance(line, AptDatLine) else AptDatLine(line) for line in apt_dat_lines)
-        apt_header_lines = list(line for line in lines if line.is_airport_header())
-        assert len(apt_header_lines), "Failed to find an airport header line in airport from file %s" % from_file_name
-        assert len(apt_header_lines) == 1, "Expected only one airport header line in airport from file %s" % from_file_name
-        return Airport(name=' '.join(apt_header_lines[0].tokens[5:]),
-                       id=apt_header_lines[0].tokens[4],
+        lines = list(line if isinstance(line, AptDatLine) else AptDatLine(line) for line in dat_lines)
+        header_lines = list(line for line in lines if line.is_airport_header())
+        assert len(header_lines), "Failed to find an airport header line in airport from file %s" % from_file_name
+        assert len(header_lines) == 1, "Expected only one airport header line in airport from file %s" % from_file_name
+        return Airport(name=' '.join(header_lines[0].tokens[5:]),
+                       id=header_lines[0].tokens[4],
                        from_file=from_file_name,
-                       elevation_ft_amsl=float(apt_header_lines[0].tokens[1]),
-                       has_atc=bool(int(apt_header_lines[0].tokens[2])),  # '0' or '1'
+                       elevation_ft_amsl=float(header_lines[0].tokens[1]),
+                       has_atc=bool(int(header_lines[0].tokens[2])),  # '0' or '1'
                        text=lines)
 
     @staticmethod
@@ -353,31 +353,31 @@ class AptDat:
                 self._parse_text(f.readlines(), path_to_file)
 
     @staticmethod
-    def from_file_text(apt_dat_file_text, from_file):
+    def from_file_text(dat_file_text, from_file):
         """
-        :param apt_dat_file_text: The contents of an apt.dat (or ICAO.dat) file
-        :type apt_dat_file_text: str
+        :param dat_file_text: The contents of an apt.dat (or ICAO.dat) file
+        :type dat_file_text: str
         :param from_file: Path to the file from which this was read
         :type from_file: str
         """
-        return AptDat()._parse_text(apt_dat_file_text, from_file)
+        return AptDat()._parse_text(dat_file_text, from_file)
 
-    def _parse_text(self, apt_dat_text, from_file):
-        if not isinstance(apt_dat_text, list):  # Must be a newline-containing string
-            assert isinstance(apt_dat_text, str)
-            apt_dat_text = apt_dat_text.splitlines()
+    def _parse_text(self, dat_text, from_file):
+        if not isinstance(dat_text, list):  # Must be a newline-containing string
+            assert isinstance(dat_text, str)
+            dat_text = dat_text.splitlines()
 
         self.path_to_file = from_file
-        apt_lines = []
-        for line in (AptDatLine(l) for l in apt_dat_text):
+        lines = []
+        for line in (AptDatLine(l) for l in dat_text):
             if line.is_airport_header():
-                if apt_lines:  # finish off the previous airport
-                    self.airports.append(Airport.from_lines(apt_lines, from_file))
-                apt_lines = [line]
+                if lines:  # finish off the previous airport
+                    self.airports.append(Airport.from_lines(lines, from_file))
+                lines = [line]
             elif not line.is_ignorable():
-                apt_lines.append(line)
-        if apt_lines:  # finish off the final airport
-            self.airports.append(Airport.from_lines(apt_lines, from_file))
+                lines.append(line)
+        if lines:  # finish off the final airport
+            self.airports.append(Airport.from_lines(lines, from_file))
         return self
 
     def write_to_disk(self, path_to_write_to):
@@ -406,27 +406,27 @@ class AptDat:
         """
         self.airports = sorted(self.airports, key=attrgetter(key))
 
-    def search_by_id(self, apt_id):
+    def search_by_id(self, id):
         """
-        :param apt_id: The X-Plane ID of the airport you want to query
-        :type apt_id: str
+        :param id: The X-Plane ID of the airport you want to query
+        :type id: str
         :returns: The airport with the specified ID, or ``None`` if no matching airport exists in this collection.
         :rtype: Union[Airport, None]
         """
-        found = self.search_by_predicate(lambda apt: apt.id.upper() == apt_id.upper())
+        found = self.search_by_predicate(lambda apt: apt.id.upper() == id.upper())
         if found:
             assert len(found) == 1, "No two airports in a given apt.dat file should ever have the same airport code"
             return found[0]
         return None
 
-    def search_by_name(self, apt_name):
+    def search_by_name(self, name):
         """
-        :param apt_name: The name of the airport you want to query
-        :type apt_name: str
+        :param name: The name of the airport you want to query
+        :type name: str
         :rtype: list[Airport]
         :returns: All airports that match the specified name, case-insensitive (an empty list if no airports match)
         """
-        return self.search_by_predicate(lambda apt: apt.name.upper() == apt_name.upper())
+        return self.search_by_predicate(lambda apt: apt.name.upper() == name.upper())
 
     def search_by_predicate(self, predicate_fn):
         """
