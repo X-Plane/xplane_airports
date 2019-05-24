@@ -6,8 +6,8 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from operator import attrgetter
 import re
-from enum import IntEnum
-from typing import List
+from enum import IntEnum, Enum
+from typing import List, Dict
 
 WED_LINE_ENDING = '\n'
 
@@ -97,6 +97,24 @@ class RunwayType(IntEnum):
         return self.value
 
 
+class MetadataKey(Enum):
+    # NOTE: These have to match the key names in WED_MetaDataKeys.cpp
+    CITY = 'city'
+    COUNTRY = 'country'
+    DATUM_LAT = 'datum_lat'
+    DATUM_LON = 'datum_lon'
+    FAA_CODE = 'faa_code'
+    LABEL_3D_OR_2D = 'gui_label'
+    IATA_CODE = 'iata_code'
+    ICAO_CODE = 'icao_code'
+    LOCAL_CODE = 'local_code'
+    LOCAL_AUTHORITY = 'local_authority'
+    REGION_CODE = 'region_code'
+    STATE = 'state'
+    TRANSITION_ALT = 'transition_alt'
+    TRANSITION_LEVEL = 'transition_level'
+
+
 class AptDatLine:
     """
     A single line from an apt.dat file.
@@ -170,6 +188,7 @@ class Airport:
     from_file: str = ''           # Path to the apt.dat file from which this airport was read
     has_atc: bool = False         # True if the airport header indicates the airport has air traffic control
     elevation_ft_amsl: float = 0  # The elevation, in feat above mean sea level, indicated in the airport header line
+    metadata: Dict[MetadataKey, str] = field(default_factory=dict)  # Metadata about the airport
     text: List[AptDatLine] = field(default_factory=list)  # The complete text of the portion of the apt.dat file pertaining to this airport
 
     def __bool__(self):
@@ -311,6 +330,16 @@ class Airport:
         :type from_file_name: str
         :rtype: Airport
         """
+        def parse_metadata(apt_lines: List[AptDatLine]) -> Dict[MetadataKey, str]:
+            out = {}
+            for line in apt_lines:
+                if line.row_code == RowCode.METADATA:
+                    try:
+                        out[MetadataKey(line.tokens[1])] = ' '.join(line.tokens[2:])
+                    except:
+                        pass
+            return out
+
         lines = list(line if isinstance(line, AptDatLine) else AptDatLine(line) for line in dat_lines)
         header_lines = list(line for line in lines if line.is_airport_header())
         assert len(header_lines), "Failed to find an airport header line in airport from file %s" % from_file_name
@@ -320,6 +349,7 @@ class Airport:
                        from_file=from_file_name,
                        elevation_ft_amsl=float(header_lines[0].tokens[1]),
                        has_atc=bool(int(header_lines[0].tokens[2])),  # '0' or '1'
+                       metadata=parse_metadata(lines),
                        text=lines)
 
     @staticmethod
