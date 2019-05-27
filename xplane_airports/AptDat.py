@@ -135,7 +135,7 @@ class AptDatLine:
         :returns: True if this line represents a land runway, waterway, or helipad
         :rtype: bool
         """
-        return self.row_code in [int(RowCode.LAND_RUNWAY), int(RowCode.WATER_RUNWAY), int(RowCode.HELIPAD)]
+        return self.row_code in (RowCode.LAND_RUNWAY, RowCode.WATER_RUNWAY, RowCode.HELIPAD)
 
     def is_ignorable(self):
         """
@@ -149,7 +149,7 @@ class AptDatLine:
         :returns: True if this line marks the beginning of an airport, seaport, or heliport
         :rtype: bool
         """
-        return self.row_code in [RowCode.AIRPORT_HEADER, RowCode.SEAPORT_HEADER, RowCode.HELIPORT_HEADER]
+        return self.row_code in (RowCode.AIRPORT_HEADER, RowCode.SEAPORT_HEADER, RowCode.HELIPORT_HEADER)
 
     def is_file_header(self):
         """
@@ -176,7 +176,7 @@ class AptDatLine:
         return str(self).split(' ')
 
     def __str__(self):
-        return re.sub(' +', ' ', self.raw.strip())  # Strip, and replace multiple spaces with a single
+        return re.sub(' +', ' ', self.raw)  # Replace multiple spaces with a single
 
     def __bool__(self):
         return not self.is_ignorable()
