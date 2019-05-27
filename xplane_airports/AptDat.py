@@ -119,6 +119,8 @@ class AptDatLine:
     """
     A single line from an apt.dat file.
     """
+    __slots__ = ('raw', 'row_code')
+
     def __init__(self, line_text):
         """
         :type line_text: str
@@ -140,7 +142,7 @@ class AptDatLine:
         :returns: True if this line carries no semantic value for any airport in the apt.dat file.
         :rtype: bool
         """
-        return self.row_code == RowCode.FILE_END or self.is_file_header() or not self.raw.strip()
+        return self.row_code == RowCode.FILE_END or self.is_file_header() or not self.raw
 
     def is_airport_header(self):
         """
