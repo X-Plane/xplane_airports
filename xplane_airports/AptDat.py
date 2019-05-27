@@ -123,8 +123,8 @@ class AptDatLine:
         """
         :type line_text: str
         """
-        self.raw = line_text
-        self.row_code = self.raw.strip().split(' ')[0]
+        self.raw = line_text.strip()
+        self.row_code = self.raw.split(' ', 1)[0]
         with suppress(ValueError):
             self.row_code = int(self.row_code)
 
