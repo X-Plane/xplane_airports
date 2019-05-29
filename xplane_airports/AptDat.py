@@ -197,7 +197,9 @@ class Airport:
         return bool(self.id)
 
     def __str__(self):
-        return WED_LINE_ENDING.join(line.raw for line in self.text)
+        return WED_LINE_ENDING.join(line.raw for line in self.text
+                                    # Fix parsing errors in X-Plane: If a metadata key has no value, it needs to be excluded from the apt.dat!
+                                    if line.row_code != RowCode.METADATA or len(line.tokens) > 2)
 
     def head(self, num_lines=10):
         """
@@ -337,7 +339,9 @@ class Airport:
             for line in apt_lines:
                 if line.row_code == RowCode.METADATA:
                     try:
-                        out[MetadataKey(line.tokens[1])] = ' '.join(line.tokens[2:])
+                        val = ' '.join(line.tokens[2:])
+                        if val:
+                            out[MetadataKey(line.tokens[1])] = val
                     except:
                         pass
             return out
