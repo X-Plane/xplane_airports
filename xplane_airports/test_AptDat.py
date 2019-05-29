@@ -67,6 +67,7 @@ class TestAptDat(TestCase):
                                 1   2084 0 0 YTWB Toowoomba
                                 100 29.87 1 0 0.25 0 2 0 11 -27.54021531  151.91198836    0    0 2 0 1 0 29 -27.54021533  151.92212245    0    0 2 0 1 0
                                 100 49.99 15 0 0.25 0 0 0 07 -27.54417182  151.91052007    0    0 0 0 0 0 25 -27.54206566  151.91805380    0    0 0 0 0 0
+                                1302 icao_code YTWB
                                 110 2 1.00 190.0000 New Taxiway 13
                                 111 -27.54381636  151.91715300
                                 111 -27.54388400  151.91714277
@@ -158,6 +159,7 @@ class TestAptDat(TestCase):
         canonical.append("""1   2084 0 0 YTWB Toowoomba
                             100 29.87 1 0 0.25 0 2 0 11 -27.54021531  151.91198836    0    0 2 0 1 0 29 -27.54021533  151.92212245    0    0 2 0 1 0
                             100 49.99 15 0 0.25 0 0 0 07 -27.54417182  151.91052007    0    0 0 0 0 0 25 -27.54206566  151.91805380    0    0 0 0 0 0
+                            1302 icao_code YTWB
                             110 2 1.00 190.0000 New Taxiway 13
                             111 -27.54381636  151.91715300
                             111 -27.54388400  151.91714277
@@ -214,6 +216,7 @@ class TestAptDat(TestCase):
         canonical.append("""1   2084 0 0 YTWB Toowoomba
                             100 29.87 1 0 0.25 0 2 0 11 -27.54021531  151.91198836    0    0 2 0 1 0 29 -27.54021533  151.92212245    0    0 2 0 1 0
                             100 49.99 15 0 0.25 0 0 0 07 -27.54417182  151.91052007    0    0 0 0 0 0 25 -27.54206566  151.91805380    0    0 0 0 0 0
+                            1302 icao_code YTWB
                             110 2 1.00 190.0000 New Taxiway 13
                             111 -27.54381636  151.91715300
                             111 -27.54388400  151.91714277
@@ -262,6 +265,41 @@ class TestAptDat(TestCase):
         # Test + op
         new_combined = self.multi_parser + self.single_parser
         self.assertEqual(str(new_combined), str(combined))
+
+    def test_contains(self):
+        self.assertTrue('YTWB' in self.multi_parser)
+        self.assertTrue('SDCR' in self.multi_parser)
+        self.assertTrue('SCVO' in self.multi_parser)
+        self.assertTrue('YTNK' in self.multi_parser)
+        for apt in self.multi_parser:
+            self.assertTrue(apt in self.multi_parser)
+        self.assertFalse('KSEA' in self.multi_parser)
+
+    def test_clone(self):
+        cloned = self.multi_parser.clone()
+        for i in range(len(cloned)):
+            self.assertEqual(cloned[i], self.multi_parser[i])
+
+    def test_delete(self):
+        cloned = self.multi_parser.clone()
+        self.assertTrue('YTWB' in cloned)
+        del cloned['YTWB']
+        self.assertFalse('YTWB' in cloned)
+
+        apt0 = cloned[0]
+        self.assertTrue(apt0 in cloned)
+        del cloned[0]
+        self.assertFalse(apt0 in cloned)
+
+        aptLast = cloned[-1]
+        self.assertTrue(aptLast in cloned)
+        del cloned[aptLast]
+        self.assertFalse(aptLast in cloned)
+
+    def test_reversed(self):
+        reversed_ids = [apt.id for apt in reversed(self.multi_parser)]
+        for i, apt_id in enumerate(apt.id for apt in self.multi_parser):
+            self.assertEqual(apt_id, reversed_ids[len(reversed_ids) - 1 - i])
 
     #######################################
     # Tests for the single apt.dat parser

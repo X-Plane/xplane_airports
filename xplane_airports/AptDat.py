@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from operator import attrgetter
 import re
 from enum import IntEnum, Enum
-from typing import List, Dict
+from typing import List, Dict, Union
 
 WED_LINE_ENDING = '\n'
 
@@ -394,6 +394,12 @@ class AptDat:
         """
         return AptDat()._parse_text(dat_file_text, from_file)
 
+    def clone(self):
+        out = AptDat()
+        out.airports = list(self.airports)
+        out.path_to_file = self.path_to_file
+        return out
+
     def _parse_text(self, dat_text, from_file):
         if not isinstance(dat_text, list):  # Must be a newline-containing string
             assert isinstance(dat_text, str)
@@ -515,6 +521,22 @@ class AptDat:
 
     def __iter__(self):
         return (apt for apt in self.airports)
+
+    def __contains__(self, item: Union[str, Airport]):
+        if isinstance(item, str):
+            return any(apt.id == item for apt in self.airports)
+        return any(apt == item for apt in self.airports)
+
+    def __delitem__(self, key):
+        if isinstance(key, str):
+            self.airports = [apt for apt in self.airports if apt.id != key]
+        elif isinstance(key, int):
+            del self.airports[key]
+        else:
+            self.airports.remove(key)
+
+    def __reversed__(self):
+        return reversed(self.airports)
 
     def __len__(self):
         return len(self.airports)
