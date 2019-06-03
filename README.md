@@ -80,7 +80,7 @@ A container class for [`Airport`](#aptdatairport) objects. Parses X-Plane’s gi
 **Static method** `from_file_text`(_apt\_dat\_file\_text_, _from\_file_) -> [`AptDat`](#aptdataptdat)\
 Parameters:
 
-- **apt\_dat\_file\_text** (_str_): The contents of an apt.dat (or ICAO.dat) file
+- **apt\_dat\_file\_text** (_str_|_pathlib.Path_): The contents of an apt.dat (or ICAO.dat) file
 - **from\_file** (_str_): Path to the file from which this was read
 
 **Property** `ids`\
@@ -123,7 +123,7 @@ Dataclass members:
 
 - _name_ (str): The name of the airport, like "Seattle-Tacoma Intl"
 - _id_ (str): The X-Plane identifier for the airport, which may or may not correspond to its ICAO ID
-- _from_file_ (str; default empty): Path to the `apt.dat` file from which this airport was read
+- _from_file_ (_pathlib.Path_; default empty): Path to the `apt.dat` file from which this airport was read
 - _has_atc_ (bool; default `False`): True if the airport header indicates the airport has air traffic control
 - _elevation_ft_amsl_ (float; default 0): The elevation, in feat above mean sea level, indicated in the airport header line
 - _text_ (List\[[AptDatLine](#aptdataptdatline)\]; default empty): The complete text of the portion of the apt.dat file pertaining to this airport
