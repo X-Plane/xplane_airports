@@ -27,5 +27,6 @@ setup(
     install_requires=[
         'requests',
         'dataclasses>=0.6; python_version < "3.7"'
-    ]
+    ],
+    test_suite='xplane_airports/test_AptDat.py'
 )
