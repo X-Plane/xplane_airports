@@ -9,7 +9,7 @@ import requests
 from dataclasses import dataclass
 from enum import IntEnum
 from io import BytesIO
-from typing import Union
+from typing import Iterable, Optional, Any, Dict, Union
 from xplane_airports.AptDat import Airport
 
 GATEWAY_DOMAIN = "https://gateway.x-plane.com"  # The root URL for the Gateway API
@@ -53,20 +53,19 @@ class GatewayFeature(IntEnum):
 class GatewayApt:
     """All the data we get back about an airport when we download a scenery pack via ``scenery_pack()``"""
     apt: Airport                     # Python object with the contents of the apt.dat file
-    txt: Union[str, None]            # Contents of the DSF .txt file; airports with no 3D will not include this
+    txt: Optional[str]               # Contents of the DSF .txt file; airports with no 3D will not include this
     readme: str                      # Contents of the README for this scenery pack
     copying: str                     # Contents of the COPYING instructions for this scenery pack
-    pack_metadata: dict              # The JSON object received from the Gateway with metadata about this particular scenery pack
-    apt_metadata: Union[dict, None]  # The JSON object received from the Gateway with metadata about the airport this scenery pack represents; None if this hasn't been downloaded (yet)
+    pack_metadata: Dict[str, Any]    # The JSON object received from the Gateway with metadata about this particular scenery pack
+    apt_metadata: Optional[Dict[str, Any]]  # The JSON object received from the Gateway with metadata about the airport this scenery pack represents; None if this hasn't been downloaded (yet)
 
 
-def airports():
+def airports() -> Dict[str, Dict[str, Any]]:
     """
     Queries the Scenery Gateway for all the airports it knows about. Note that the download size is greater than 1 MB.
     Documented at: https://gateway.x-plane.com/api#get-all-airports
 
     :returns: A dict with metadata on all 35,000+ airports; keys are X-Plane identifiers (which may or may not correspond to ICAO identifiers), and values are various airport metadata.
-    :rtype: dict
 
     >>> airports()['KSEA']
     {'AirportCode': 'KSEA', 'AirportName': 'Seattle Tacoma Intl', 'AirportClass': None, 'Latitude': 47.448, 'Longitude': -122.309, 'Elevation': None, 'Deprecated': None, 'DeprecatedInFavorOf': None, 'AcceptedSceneryCount': 2, 'ApprovedSceneryCount': 2, 'ExcludeSubmissions': 0, 'RecommendedSceneryId': 45283, 'Status': 'Scenery Submitted', 'SceneryType': 0, 'SubmissionCount': 2, 'checkedOutBy': None, 'checkOutEndDate': None}
@@ -77,16 +76,13 @@ def airports():
     return {apt['AirportCode']: apt for apt in _gateway_json_request('/apiv1/airports', 'airports')}
 
 
-def airport(airport_id):
+def airport(airport_id: str) -> Dict[str, Any]:
     """
     Queries the Scenery Gateway for metadata on a single airport, plus metadata on all the scenery packs uploaded for that airport.
     Documented at: https://gateway.x-plane.com/api#get-a-single-airport
 
     :param airport_id: The identifier of the airport on the Gateway (may or may not be an ICAO ID)
-    :type airport_id: str
-
     :returns: A dict with metadata about the airport
-    :rtype: dict
 
     >>> expected_keys = {'icao', 'airportName', 'airportClass', 'latitude', 'longitude', 'elevation', 'acceptedSceneryCount', 'approvedSceneryCount', 'recommendedSceneryId', 'scenery'}
     >>> ksea = airport('KSEA')
@@ -107,16 +103,13 @@ def airport(airport_id):
     return _gateway_json_request('/apiv1/airport/' + airport_id, 'airport')
 
 
-def recommended_scenery_packs(selective_apt_ids=None):
+def recommended_scenery_packs(selective_apt_ids=Optional[Iterable[str]]) -> Iterable[GatewayApt]:
     """
     A generator to iterate over the recommended scenery packs for all (or just the selected) airports on the Gateway.
     Downloads and unzips all files into memory.
 
     :param selective_apt_ids: If ``None``, we will download scenery for all 35,000+ airports; if a list of airport IDs (as returned by ``airports()``), the airports whose recommended packs we should download.
-    :type selective_apt_ids: Union[collections.Iterable[str], None]
-
     :returns: A generator of the recommended scenery packs; each pack contains the same data as a call to ``scenery_pack()`` directly
-    :rtype: collections.Iterable[GatewayApt]
 
     Easily request a subset of airports:
 
@@ -149,15 +142,12 @@ def recommended_scenery_packs(selective_apt_ids=None):
             yield out
 
 
-def scenery_pack(pack_to_download):
+def scenery_pack(pack_to_download: Union[int, str]) -> GatewayApt:
     """
     Downloads a single scenery pack, including its apt.dat and any associated DSF from the Gateway, and unzips it into memory.
 
     :param pack_to_download: If ``int``, the scenery ID of the pack to be downloaded; if ``str``, the airport whose recommended pack we should download.
-    :type pack_to_download: Union[str, int]
-
     :returns: the downloaded files and the metadata about the scenery pack
-    :rtype: GatewayApt
 
     >>> expected_keys = {'sceneryId', 'parentId', 'icao', 'aptName', 'userId', 'userName', 'dateUploaded', 'dateAccepted', 'dateApproved', 'dateDeclined', 'type', 'features', 'artistComments', 'moderatorComments', 'additionalMetadata', 'masterZipBlob'}
     >>> ksea_pack_metadata = scenery_pack('KSEA').pack_metadata
@@ -201,7 +191,7 @@ def scenery_pack(pack_to_download):
 # TODO: API for bulk download and editing of scenery packs
 
 
-def _gateway_json_request(relative_download_url, expected_key):
+def _gateway_json_request(relative_download_url: str, expected_key: str):
     r = requests.get(GATEWAY_DOMAIN + relative_download_url)
     if r.status_code != 200:
         raise AssertionError("HTTP Status %d returned by %s" % (r.status_code, GATEWAY_DOMAIN + relative_download_url))
