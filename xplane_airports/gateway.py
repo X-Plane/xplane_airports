@@ -103,13 +103,16 @@ def airport(airport_id: str) -> Dict[str, Any]:
     return _gateway_json_request('/apiv1/airport/' + airport_id, 'airport')
 
 
-def recommended_scenery_packs(selective_apt_ids=Optional[Iterable[str]]) -> Iterable[GatewayApt]:
+def recommended_scenery_packs(selective_apt_ids: Optional[Iterable[str]]=None) -> Iterable[GatewayApt]:
     """
     A generator to iterate over the recommended scenery packs for all (or just the selected) airports on the Gateway.
     Downloads and unzips all files into memory.
 
     :param selective_apt_ids: If ``None``, we will download scenery for all 35,000+ airports; if a list of airport IDs (as returned by ``airports()``), the airports whose recommended packs we should download.
     :returns: A generator of the recommended scenery packs; each pack contains the same data as a call to ``scenery_pack()`` directly
+
+    >>> type(next(recommended_scenery_packs())).__name__
+    'GatewayApt'
 
     Easily request a subset of airports:
 
