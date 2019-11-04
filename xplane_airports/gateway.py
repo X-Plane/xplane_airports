@@ -138,9 +138,11 @@ def recommended_scenery_packs(selective_apt_ids=None):
     """
     all_airports = airports()
     if selective_apt_ids:
-        all_airports = list(apt for apt_id, apt in all_airports.items() if apt_id in selective_apt_ids)
+        all_airports = {apt_id: apt
+                        for apt_id, apt in all_airports.items()
+                        if apt_id in selective_apt_ids}
 
-    for airport in all_airports:
+    for apt_id, airport in all_airports.items():
         if not airport['Deprecated'] and airport['RecommendedSceneryId']:
             out = scenery_pack(airport['RecommendedSceneryId'])
             out.apt_metadata = airport
