@@ -162,20 +162,33 @@ def scenery_pack(pack_to_download: Union[int, str]) -> GatewayApt:
     True
     """
     def unzip_pack_to_memory(gateway_zip_stream, pack_md=None, apt_md=None):
+        def resilient_decode(bytestring: bytes) -> str:
+            try:
+                return bytestring.decode('utf-8')
+            except UnicodeDecodeError as e:
+                try:  # We have some old scenery packs not correctly uploaded with UTF-8... try the Windows encoding
+                    return bytestring.decode('cp1252')
+                except:
+                    return bytestring.decode('utf-8', errors='replace')
+
+        def resilient_read(zip_archive, fname: str):
+            return resilient_decode(zip_archive.read(fname))
+
         with zipfile.ZipFile(gateway_zip_stream) as z:
             out = GatewayApt(apt=None, txt=None, readme='', copying='', pack_metadata=pack_md, apt_metadata=apt_md)
             for file_name in z.namelist():
                 if file_name.endswith('.txt'):
-                    out.txt = z.read(file_name).decode("utf-8")
+                    out.txt = resilient_read(z, file_name)
                 elif file_name.endswith('.dat'):
-                    out.apt = Airport.from_str(z.read(file_name).decode("utf-8"), file_name)
+                    out.apt = Airport.from_str(resilient_read(z, file_name), file_name)
                 elif file_name.endswith('.zip'):
                     with zipfile.ZipFile(BytesIO(z.read(file_name))) as zipped_pack:
-                        for j, pack_file_name in enumerate(zipped_pack.namelist()):
+                        for pack_file_name in zipped_pack.namelist():
                             if 'README' in pack_file_name.upper():
-                                out.readme = zipped_pack.read(pack_file_name).decode("utf-8")
+                                out.readme = resilient_read(zipped_pack, pack_file_name)
                             elif 'COPYING' in pack_file_name.upper():
-                                out.readme = zipped_pack.read(pack_file_name).decode("utf-8")
+                                out.copying = resilient_read(zipped_pack, pack_file_name)
+            assert out.apt, 'Failed to find apt.dat in scenery pack'
             return out
 
     apt_metadata = None
