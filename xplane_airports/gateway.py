@@ -5,11 +5,12 @@ Docs at: https://gateway.x-plane.com/api
 """
 import base64
 import zipfile
+from time import sleep
 import requests
 from dataclasses import dataclass
 from enum import IntEnum
 from io import BytesIO
-from typing import Iterable, Optional, Any, Dict, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Union
 from xplane_airports.AptDat import Airport
 
 GATEWAY_DOMAIN = "https://gateway.x-plane.com"  # The root URL for the Gateway API
@@ -207,9 +208,19 @@ def scenery_pack(pack_to_download: Union[int, str]) -> GatewayApt:
 # TODO: API for bulk download and editing of scenery packs
 
 
-def _gateway_json_request(relative_download_url: str, expected_key: str):
-    r = requests.get(GATEWAY_DOMAIN + relative_download_url)
-    if r.status_code != 200:
-        raise AssertionError("HTTP Status %d returned by %s" % (r.status_code, GATEWAY_DOMAIN + relative_download_url))
-    return r.json()[expected_key]
+def _gateway_json_request(relative_download_url, expected_key):
+    def retry(action: Callable, max_tries=5):
+        for attempted in range(max_tries):
+            try:
+                return action()
+            except:
+                sleep(attempted)
+        return action()
+
+    def make_req():
+        r = requests.get(GATEWAY_DOMAIN + relative_download_url)
+        assert r.status_code == 200, "HTTP Status %d returned by %s" % (r.status_code, GATEWAY_DOMAIN + relative_download_url)
+        return r.json()[expected_key]
+
+    return retry(make_req, max_tries=20)
 
