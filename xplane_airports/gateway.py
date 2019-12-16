@@ -61,7 +61,7 @@ class GatewayApt:
     apt_metadata: Optional[Dict[str, Any]]  # The JSON object received from the Gateway with metadata about the airport this scenery pack represents; None if this hasn't been downloaded (yet)
 
 
-def airports() -> Dict[str, Dict[str, Any]]:
+def airports(retries_on_error: int=20) -> Dict[str, Dict[str, Any]]:
     """
     Queries the Scenery Gateway for all the airports it knows about. Note that the download size is greater than 1 MB.
     Documented at: https://gateway.x-plane.com/api#get-all-airports
@@ -74,10 +74,10 @@ def airports() -> Dict[str, Dict[str, Any]]:
     >>> len(airports()) > 35000
     True
     """
-    return {apt['AirportCode']: apt for apt in _gateway_json_request('/apiv1/airports', 'airports')}
+    return {apt['AirportCode']: apt for apt in _gateway_json_request('/apiv1/airports', 'airports', retries_on_error)}
 
 
-def airport(airport_id: str) -> Dict[str, Any]:
+def airport(airport_id: str, retries_on_error: int=20) -> Dict[str, Any]:
     """
     Queries the Scenery Gateway for metadata on a single airport, plus metadata on all the scenery packs uploaded for that airport.
     Documented at: https://gateway.x-plane.com/api#get-a-single-airport
@@ -101,10 +101,10 @@ def airport(airport_id: str) -> Dict[str, Any]:
     >>> all(key in first_scenery_pack_metadata for key in expected_keys)
     True
     """
-    return _gateway_json_request('/apiv1/airport/' + airport_id, 'airport')
+    return _gateway_json_request('/apiv1/airport/' + airport_id, 'airport', retries_on_error)
 
 
-def recommended_scenery_packs(selective_apt_ids: Optional[Iterable[str]]=None) -> Iterable[GatewayApt]:
+def recommended_scenery_packs(selective_apt_ids: Optional[Iterable[str]]=None, retries_on_error: int=20) -> Iterable[GatewayApt]:
     """
     A generator to iterate over the recommended scenery packs for all (or just the selected) airports on the Gateway.
     Downloads and unzips all files into memory.
@@ -133,7 +133,7 @@ def recommended_scenery_packs(selective_apt_ids: Optional[Iterable[str]]=None) -
     >>> all_3d and all_have_atc_flow and all_have_taxi_route
     True
     """
-    all_airports = airports()
+    all_airports = airports(retries_on_error)
     if selective_apt_ids:
         all_airports = {apt_id: apt
                         for apt_id, apt in all_airports.items()
@@ -141,12 +141,12 @@ def recommended_scenery_packs(selective_apt_ids: Optional[Iterable[str]]=None) -
 
     for apt_id, airport in all_airports.items():
         if not airport['Deprecated'] and airport['RecommendedSceneryId']:
-            out = scenery_pack(airport['RecommendedSceneryId'])
+            out = scenery_pack(airport['RecommendedSceneryId'], retries_on_error)
             out.apt_metadata = airport
             yield out
 
 
-def scenery_pack(pack_to_download: Union[int, str]) -> GatewayApt:
+def scenery_pack(pack_to_download: Union[int, str], retries_on_error: int=20) -> GatewayApt:
     """
     Downloads a single scenery pack, including its apt.dat and any associated DSF from the Gateway, and unzips it into memory.
 
@@ -195,10 +195,10 @@ def scenery_pack(pack_to_download: Union[int, str]) -> GatewayApt:
     apt_metadata = None
     if isinstance(pack_to_download, str):
         # If we were given a string airport ID (instead of just a numeric scenery pack ID), we need an extra request to first determine the ID of the recommended pack for this airport
-        apt_metadata = _gateway_json_request('/apiv1/airport/' + pack_to_download, 'airport')
+        apt_metadata = _gateway_json_request('/apiv1/airport/' + pack_to_download, 'airport', retries_on_error)
         pack_to_download = apt_metadata['recommendedSceneryId']
 
-    pack = _gateway_json_request("/apiv1/scenery/%d" % pack_to_download, 'scenery')
+    pack = _gateway_json_request("/apiv1/scenery/%d" % pack_to_download, 'scenery', retries_on_error)
     if pack['features']:
         assert isinstance(pack['features'], str), 'The JSON decoder mangled our text-list of feature IDs'
         pack['features'] = list(GatewayFeature(int(feature_str)) for feature_str in pack['features'].split(',') if int(feature_str) in list(map(int, GatewayFeature)))
@@ -208,19 +208,20 @@ def scenery_pack(pack_to_download: Union[int, str]) -> GatewayApt:
 # TODO: API for bulk download and editing of scenery packs
 
 
-def _gateway_json_request(relative_download_url, expected_key):
-    def retry(action: Callable, max_tries=5):
+def _gateway_json_request(relative_download_url: str, expected_key: str, retries_on_error: int=20):
+    def retry(action: Callable, max_tries):
         for attempted in range(max_tries):
             try:
                 return action()
-            except:
+            except Exception as e:
                 sleep(attempted)
         return action()
 
     def make_req():
         r = requests.get(GATEWAY_DOMAIN + relative_download_url)
-        assert r.status_code == 200, "HTTP Status %d returned by %s" % (r.status_code, GATEWAY_DOMAIN + relative_download_url)
+        if r.status_code >= 300:
+            raise requests.HTTPError(f"HTTP Status {r.status_code} returned by {GATEWAY_DOMAIN + relative_download_url}")
         return r.json()[expected_key]
 
-    return retry(make_req, max_tries=20)
+    return retry(make_req, max_tries=retries_on_error)
 
