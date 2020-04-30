@@ -73,15 +73,18 @@ Tools for reading, inspecting, and manipulating X-Plane’s airport (apt.dat) fi
 
 _class_ `AptDat.AptDat`(_path\_to\_file=None_)
 
-A container class for [`Airport`](#aptdatairport) objects. Parses X-Plane’s gigantic `apt.dat` files, which may have data on hundreds of airports.
+A container class for [`Airport`](#aptdatairport) objects. Parses X-Plane’s gigantic `apt.dat` files, which may have data on tens of thousands of airports.
 
-**Field** `airports` (list\[Airport\])
+**Fields**
+
+- `airports` (List\[Airport\])
+- `xplane_version` (int): The version of the apt.dat spec used by the airports in this collection
 
 **Static method** `from_file_text`(_apt\_dat\_file\_text_, _from\_file_) -> [`AptDat`](#aptdataptdat)\
 Parameters:
 
-- **apt\_dat\_file\_text** (_str_|_pathlib.Path_): The contents of an apt.dat (or ICAO.dat) file
-- **from\_file** (_str_): Path to the file from which this was read
+- **apt\_dat\_file\_text** (_str_): The contents of an apt.dat (or ICAO.dat) file
+- **from\_file** (_os.PathLike_): Path to the file from which this was read
 
 **Property** `ids`\
 A generator containing the X-Plane IDs of all airports in the collection. Note that these IDs may or may not correspond to the airports’ ICAO identifiers.\
@@ -94,7 +97,7 @@ Type: collection.Iterable\[str\]
 **Method** `search_by_id`(_apt\_id_)\
 Parameter: **apt\_id** (_str_) – The X-Plane ID of the airport you want to query\
 Returns: The airport with the specified ID, or `None` if no matching airport exists in this collection.\
-Return type: Union\[[Airport](#aptdatairport), None\]
+Return type: Optional\[[Airport](#aptdatairport)\]
 
 **Method** `search_by_name`(_apt\_name_)\
 Parameter: **apt\_name** (_str_) – The name of the airport you want to query\
@@ -111,7 +114,7 @@ Parameter: **key** (_str_) – The [Airport](#aptdatairport) key to sort on
 
 **Method** `write_to_disk`(_path_to_write_to_)\
 Writes a complete apt.dat file containing this entire collection of airports.\
-Parameter: **path_to_write_to** (_str_) – A complete file path (ending in .dat)
+Parameter: **path_to_write_to** (_Optional_\[_os.PathLike_\]) – A complete file path (ending in .dat); if `None`, we'll use the path we read this apt.dat in from.
 
 ### AptDat.Airport
 
@@ -127,6 +130,7 @@ Dataclass members:
 - _has_atc_ (bool; default `False`): True if the airport header indicates the airport has air traffic control
 - _elevation_ft_amsl_ (float; default 0): The elevation, in feat above mean sea level, indicated in the airport header line
 - _text_ (List\[[AptDatLine](#aptdataptdatline)\]; default empty): The complete text of the portion of the apt.dat file pertaining to this airport
+- _xplane_version_ (int; default 1100): The version of the X-Plane apt.dat spec this airport uses (e.g., 1050, 1100, 1130)
 
 **Static method** `from_lines`(_apt\_dat\_lines_, _from\_file\_name_) -> [Airport](#aptdatairport)\
 Parameters:\
@@ -173,7 +177,7 @@ Parameter: **row\_code\_or\_codes** (_Union__\[__int__,_ _str__,_ _collections.I
 
 **Method** `write_to_disk`(_path_to_write_to_)\
 Writes a complete apt.dat file containing just this airport.\
-Parameter: **path_to_write_to** (_str_) – A complete file path (ending in .dat)
+Parameter: **path_to_write_to** (_os.PathLike_) – A complete file path (ending in .dat)
 
 ### AptDat.AptDatLine
 
@@ -318,7 +322,7 @@ True
 
 A generator to iterate over the recommended scenery packs for all (or just the selected) airports on the Gateway. Downloads and unzips all files into memory.
 
-Parameter: **selective\_apt\_ids** (_Union__\[__collections.Iterable__\[__str__\]__,_ _None__\]_) – If `None`, we will download scenery for all 35,000+ airports; if a list of airport IDs (as returned by `airports()`), the airports whose recommended packs we should download.\
+Parameter: **selective\_apt\_ids** (_Optional_\[_collections.Iterable_\[_str_\]\]) – If `None`, we will download scenery for all 35,000+ airports; if a list of airport IDs (as returned by `airports()`), the airports whose recommended packs we should download.\
 Returns a generator of the recommended scenery packs; each pack contains the same data as a call to `scenery_pack()` directly
 
 Easily request a subset of airports:
