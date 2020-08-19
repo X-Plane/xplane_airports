@@ -30,6 +30,7 @@ class RowCode(IntEnum):
     FREQUENCY_TOWER 	= 54
     FREQUENCY_APPROACH 	= 55
     FREQUENCY_CENTER 	= 56
+    FREQUENCY_UNICOM 	= 57
     FILE_END			= 99
     # These records were new with X-Plane 8.50
     TAXI_SIGN 			= 20
@@ -56,13 +57,14 @@ class RowCode(IntEnum):
     FLOW_VISIBILITY	= 1003  # 1003 <metar icao> <vis minimum>
     FLOW_TIME		= 1004  # 1004 <zulu time start> <zulu time end>
 
-    CHANNEL_AWOS 		= 1050  # 8.33kHz 6-digit COM channels replacing the 50..56 records
+    CHANNEL_AWOS 		= 1050  # 8.33kHz 6-digit COM channels replacing the 50..57 records
     CHANNEL_CTAF 		= 1051
     CHANNEL_DELIVERY	= 1052
     CHANNEL_GROUND 		= 1053
     CHANNEL_TOWER 		= 1054
     CHANNEL_APPROACH	= 1055
     CHANNEL_CENTER 		= 1056
+    CHANNEL_UNICOM 		= 1057
 
     FLOW_RUNWAY_RULE		= 1100
     FLOW_PATTERN			= 1101
