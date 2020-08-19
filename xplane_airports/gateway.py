@@ -68,10 +68,17 @@ def airports(retries_on_error: int=20) -> Dict[str, Dict[str, Any]]:
 
     :returns: A dict with metadata on all 35,000+ airports; keys are X-Plane identifiers (which may or may not correspond to ICAO identifiers), and values are various airport metadata.
 
-    >>> airports()['KSEA']
-    {'AirportCode': 'KSEA', 'AirportName': 'Seattle Tacoma Intl', 'AirportClass': None, 'Latitude': 47.448, 'Longitude': -122.309, 'Elevation': None, 'Deprecated': None, 'DeprecatedInFavorOf': None, 'AcceptedSceneryCount': 2, 'ApprovedSceneryCount': 2, 'ExcludeSubmissions': 0, 'RecommendedSceneryId': 45283, 'Status': 'Scenery Submitted', 'SceneryType': 0, 'SubmissionCount': 2, 'checkedOutBy': None, 'checkOutEndDate': None, 'metadata': {'datum_lon': '-122.311777778', 'transition_level': '18000', 'transition_alt': '18000', 'iata_code': 'SEA', 'faa_code': 'SEA', 'city': 'Seattle', 'icao_code': 'KSEA', 'country': 'United States', 'state': 'Washington', 'region_code': 'K1', 'datum_lat': '47.449888889'}}
+    >>> sorted(airports()['KSEA'].keys())
+    ['AcceptedSceneryCount', 'AirportClass', 'AirportCode', 'AirportName', 'ApprovedSceneryCount', 'Deprecated', 'DeprecatedInFavorOf', 'Elevation', 'ExcludeSubmissions', 'Latitude', 'Longitude', 'RecommendedSceneryId', 'SceneryType', 'Status', 'SubmissionCount', 'checkOutEndDate', 'checkedOutBy', 'metadata']
+    >>> sorted(airports()['KSEA']['metadata'].keys())
+    ['city', 'country', 'datum_lat', 'datum_lon', 'faa_code', 'iata_code', 'icao_code', 'region_code', 'state', 'transition_alt', 'transition_level']
 
-    >>> len(airports()) > 35000
+    >>> airports()['KSEA']['AirportCode']
+    'KSEA'
+    >>> airports()['KSEA']['AirportName']
+    'Seattle Tacoma Intl'
+
+    >>> len(airports()) > 37000
     True
     """
     return {apt['AirportCode']: apt for apt in _gateway_json_request('/apiv1/airports', 'airports', retries_on_error)}
