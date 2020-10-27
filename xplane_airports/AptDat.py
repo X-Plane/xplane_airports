@@ -173,6 +173,9 @@ class AptDatLine:
     def __str__(self):
         return re.sub(' +', ' ', self.raw)  # Replace multiple spaces with a single
 
+    def __repr__(self):
+        return self.raw
+
     def __bool__(self):
         return not self.is_ignorable()
 
