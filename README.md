@@ -30,11 +30,13 @@ Install via pip with:
 
 ```python
 from xplane_airports.AptDat import AptDat, Airport
+from pathlib import Path
 
-xplane_installation = input("Path to your X-Plane installation: ")
-print("Reading 35,000+ airports from disk")
-default_xplane_apt_dat = AptDat(xplane_installation + 'Resources/default scenery/default apt dat/Earth nav data/apt.dat')
-print("%d airports found in your default apt.dat\n" % len(default_xplane_apt_dat))
+xplane_installation = Path(input("Path to your X-Plane installation: "))
+assert xplane_installation.is_dir(), f"{xplane_installation} does not exist or is not a directory"
+print("Reading 35,000+ airports from disk (this will take awhile)")
+default_xplane_apt_dat = AptDat(xplane_installation / 'Resources/default scenery/default apt dat/Earth nav data/apt.dat')
+print(f"{len(default_xplane_apt_dat)} %d airports found in your default apt.dat\n")
 
 ksea = default_xplane_apt_dat['KSEA']
 """:type ksea: Airport"""
