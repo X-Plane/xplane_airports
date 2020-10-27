@@ -370,3 +370,12 @@ class TestAptDat(TestCase):
         for apt in self.multi_parser:
             self.assertEqual(apt.has_taxi_route, apt.id == 'YTWB', 'Only YTWB in the list should have this feature')
             self.assertEqual(apt.has_traffic_flow, apt.id == 'YTWB', 'Only YTWB in the list should have this feature')
+
+    def test_file_reading(self):
+        apts = AptDat('test_apt.dat')
+        assert len(apts) == 32
+        assert 'LELL' in apts
+        assert '5WI4' in apts
+        assert 'TN04' in apts
+        assert '6NY6' in apts
+        assert 'XRP001U' in apts
