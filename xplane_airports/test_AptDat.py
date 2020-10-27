@@ -1,4 +1,5 @@
 from unittest import TestCase
+from pathlib import Path
 from xplane_airports.AptDat import Airport, AptDat, MetadataKey, AptDatLine, RunwayType
 
 
@@ -372,7 +373,8 @@ class TestAptDat(TestCase):
             self.assertEqual(apt.has_traffic_flow, apt.id == 'YTWB', 'Only YTWB in the list should have this feature')
 
     def test_file_reading(self):
-        apts = AptDat('test_apt.dat')
+        test_file_path = Path(__file__).parent / 'test_apt.dat'
+        apts = AptDat(test_file_path)
         assert len(apts) == 32
         assert 'LELL' in apts
         assert '5WI4' in apts
