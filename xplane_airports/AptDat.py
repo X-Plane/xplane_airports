@@ -4,12 +4,13 @@ Tools for reading, inspecting, and manipulating X-Plane’s airport (apt.dat) fi
 
 from contextlib import suppress
 from dataclasses import dataclass, field
+from functools import cached_property
 from operator import attrgetter
 from os import PathLike
 import re
 from enum import IntEnum, Enum
 from pathlib import Path
-from typing import List, Dict, Union, Iterable, Optional, Callable
+from typing import Callable, Collection, Dict, Iterable, List, Optional, Union
 
 WED_LINE_ENDING = '\n'
 
@@ -181,6 +182,82 @@ class AptDatLine:
 
 
 @dataclass
+class TaxiRouteNode:
+    """
+    A node in a taxiway routing network, used for routing aircraft via ATC.
+    Every node must be part of one or more edges.
+    Note that taxi routing networks (beginning with TAXI_ROUTE_HEADER line types)
+    may or may not correspond to taxiway pavement.
+    """
+    id: int     # The node identifier (must be unique within an airport)
+    lon: float  # Node's longitude
+    lat: float  # Node's latitude
+
+
+class IcaoWidth(Enum):
+    A = 'A'  # 4.5m wheelbase, 15m wingspan
+    B = 'B'  # 6m   wheelbase, 24m wingspan
+    C = 'C'  # 9m   wheelbase, 36m wingspan
+    D = 'D'  # 14m  wheelbase, 52m wingspan
+    E = 'E'  # 14m  wheelbase, 65m wingspan
+    F = 'F'  # 16m  wheelbase, 80m wingspan
+
+    def __str__(self):
+        return self.value
+
+    @classmethod
+    def from_str(cls, string: str):
+        for enum_def in cls:
+            if string == enum_def.value:
+                return enum_def
+        raise LookupError(f'No instance of {cls} matches "{string}"')
+
+
+@dataclass
+class TaxiRouteEdge:
+    """
+    An edge in a taxiway routing network, used for routing aircraft via ATC.
+    Every edge is defined by its two node endpoints.
+    Edges may support one- or two-way traffic.
+    """
+    node_begin: int  # The identifier of the beginning node
+    node_end: int    # The identifier of the terminal node
+    name: str        # The taxiway identifier, used to build ATC taxi clearances (like "taxi via A, T, Q")---may be the empty string
+    is_runway: bool = False  # If false, it's a taxiway
+    icao_width: Optional[IcaoWidth] = None  # The width class of the taxiway; unknown if None
+
+    @staticmethod
+    def from_line(line: AptDatLine) -> 'TaxiRouteEdge':
+        edge = TaxiRouteEdge(name=" ".join(line.tokens[5:]), node_begin=int(line.tokens[1]), node_end=int(line.tokens[2]))
+
+        taxiway_type = line.tokens[4]
+        if taxiway_type.startswith('taxiway_'):  # has an explicit width class
+            with suppress(LookupError):
+                edge.icao_width = IcaoWidth.from_str(taxiway_type[-1:])
+        elif taxiway_type == 'runway':
+            edge.is_runway = True
+        return edge
+
+
+@dataclass
+class TaxiRouteNetwork:
+    nodes: Dict[int, TaxiRouteNode] = field(default_factory=dict)
+    edges: List[TaxiRouteEdge] = field(default_factory=list)
+
+    @staticmethod
+    def from_lines(apt_dat_lines: Collection[AptDatLine]) -> 'TaxiRouteNetwork':
+        nodes = {
+            node.id: node
+            for node in map(lambda line: TaxiRouteNode(id=int(line.tokens[4]), lon=float(line.tokens[2]), lat=float(line.tokens[1])),
+                            filter(lambda line: line.row_code == RowCode.TAXI_ROUTE_NODE, apt_dat_lines))
+        }
+        edges = [TaxiRouteEdge.from_line(line)
+                 for line in apt_dat_lines
+                 if line.row_code == RowCode.TAXI_ROUTE_EDGE]
+        return TaxiRouteNetwork(nodes=nodes, edges=edges)
+
+
+@dataclass
 class Airport:
     """A single airport from an apt.dat file."""
     name: str                     # The name of the airport, like "Seattle-Tacoma Intl"
@@ -312,6 +389,10 @@ class Airport:
             return Airport._rwy_center(rwy_0, 5, 8)
         elif rwy_0.runway_type == RunwayType.HELIPAD:
             return float(rwy_0.tokens[3])
+
+    @cached_property
+    def atc_network(self) -> TaxiRouteNetwork:
+        return TaxiRouteNetwork.from_lines(self.text)
 
     @staticmethod
     def from_lines(dat_lines: Iterable[Union[str, AptDatLine]], from_file_name: Optional[Path] = None, xplane_version: int = 1100) -> 'Airport':

@@ -27,7 +27,7 @@ jobs:
           name: test the AptDat module
           command: |
             . venv/bin/activate
-            python -m unittest xplane_airports/test_AptDat.py
+            python -m unittest discover -s xplane_airports/ -t xplane_airports/ -p test_*.py
 
       - store_test_results:
           path: test-results
