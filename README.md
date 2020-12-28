@@ -24,6 +24,8 @@ Install via pip with:
 
 `$ pip install xplane_airports`
 
+If you're migrating from a pre-4.0 version of the library, see the [Migration notes](#migration-notes) section below.
+
 ## Sample code
 
 ### Parsing the default apt.dat file in your local X-Plane installation
@@ -126,13 +128,10 @@ _class_ `xplane_airports.AptDat.Airport`(_name: str_, _id: str_, _from\_file: st
 
 Dataclass members:
 
-- _name_ (str): The name of the airport, like "Seattle-Tacoma Intl"
-- _id_ (str): The X-Plane identifier for the airport, which may or may not correspond to its ICAO ID
 - _from_file_ (_pathlib.Path_; default empty): Path to the `apt.dat` file from which this airport was read
-- _has_atc_ (bool; default `False`): True if the airport header indicates the airport has air traffic control
-- _elevation_ft_amsl_ (float; default 0): The elevation, in feat above mean sea level, indicated in the airport header line
-- _text_ (List\[[AptDatLine](#aptdataptdatline)\]; default empty): The complete text of the portion of the apt.dat file pertaining to this airport
+- _raw_lines_ (List\[str\]; default empty): The complete text of the portion of the apt.dat file pertaining to this airport
 - _xplane_version_ (int; default 1100): The version of the X-Plane apt.dat spec this airport uses (e.g., 1050, 1100, 1130)
+- _tokenized_lines_ (List\[Tuple\]; default empty): An intermediate tokenization of the raw lines, used for speed of parsing
 
 **Static method** `from_lines`(_apt\_dat\_lines_, _from\_file\_name_) -> [Airport](#aptdatairport)\
 Parameters:\
@@ -148,6 +147,24 @@ Parameters:
 
 **Method** `head(num_lines=10)` -> str\
 Returns the first `num_lines` of the `apt.dat` text for this airport
+
+**Property** `text` (List\[[AptDatLine](#aptdataptdatline)\])\
+The raw `str` lines transformed into more usable `AptDatLine` objects. Note that this will be measurably slow if you need to work with millions of lines.
+
+**Property** `name` (str)\
+The name of the airport, like "Seattle-Tacoma Intl"
+
+**Property** `id` (str)\
+The X-Plane identifier for the airport, which may or may not correspond to its ICAO ID
+
+**Property** `has_atc` (bool)\
+True if the airport header indicates the airport has air traffic control
+
+**Property** `elevation_ft_amsl` (float)\
+The elevation, in feet above mean sea level, indicated in the airport header line
+
+**Property** `metadata` (Dict[MetadataKey, str])\
+Various key-value metadata pairs defined by X-Plane.
 
 **Property** `has_comm_freq` (bool)\
 True if this airport defines communication radio frequencies for interacting with ATC\
@@ -366,3 +383,16 @@ True
 >>> all(isinstance(feature, GatewayFeature) for feature in scenery_pack('KMCI').pack_metadata['features'])
 True
 ```
+
+## Migration notes
+
+Version 4.0 of the library introduces a handful of important breaking changes:
+
+I've rewritten the `Airports` class with a few major changes for performance:
+  
+1. We no longer use `AptDatLine` objects by default. They're still available as a `@property` with the same name as their previous dataclass member (`text`), but we now use a tuple of tokenized lines as our primary data structure internally. This eliminated the single biggest bottleneck in parsing X-Plane's 35k+ airport default apt.dat, and cut the total parsing time down from > 140 seconds on my machine to under 32 seconds.
+2. A number of other former dataclass members have been moved to `@property` methods. 
+   
+Neither change should affect basically any sane usage of the `Airport` class *except* for construction (but even that you should probably be getting from the `AptDat` class or one of the `Airport` class's static methods!).
+
+Version 4 also utilizes `@functools.cached_property` to cache some potentially-expensive `@property` methods in the `Airport` class. Since `functools` introduced this in Python 3.8, if you're on an earlier Python version, you won't get this caching behavior (you'll get normal properties instead). This is less than ideal, but it works.
