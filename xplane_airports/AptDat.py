@@ -449,7 +449,7 @@ class Airport:
                 if line_tokens[0] in runway_codes)
 
     @apt_cached_property
-    def atc_network(self) -> TaxiRouteNetwork:
+    def taxi_network(self) -> TaxiRouteNetwork:
         return TaxiRouteNetwork.from_tokenized_lines(self.tokenized_lines)
 
     @staticmethod
