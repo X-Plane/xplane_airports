@@ -224,11 +224,12 @@ class TaxiRouteEdge:
     node_end: int    # The identifier of the terminal node
     name: str        # The taxiway identifier, used to build ATC taxi clearances (like "taxi via A, T, Q")---may be the empty string
     is_runway: bool = False  # If false, it's a taxiway
+    one_way: bool = False  # If false, it supports two-way traffic
     icao_width: Optional[IcaoWidth] = None  # The width class of the taxiway; unknown if None
 
     @staticmethod
     def from_line(line: AptDatLine) -> 'TaxiRouteEdge':
-        edge = TaxiRouteEdge(name=" ".join(line.tokens[5:]), node_begin=int(line.tokens[1]), node_end=int(line.tokens[2]))
+        edge = TaxiRouteEdge(name=" ".join(line.tokens[5:]), node_begin=int(line.tokens[1]), node_end=int(line.tokens[2]), one_way=line.tokens[3] == 'oneway')
 
         taxiway_type = line.tokens[4]
         if taxiway_type.startswith('taxiway_'):  # has an explicit width class

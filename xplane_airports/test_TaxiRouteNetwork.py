@@ -131,9 +131,10 @@ class TestTaxiRouteNetwork(TestCase):
         self.assertTrue(all(edge.node_begin in nodes for edge in edges), "Missing begin node referenced by edge")
         self.assertTrue(all(edge.node_end in nodes for edge in edges), "Missing end node referenced by edge")
 
-        test_edges = (TaxiRouteEdge(node_begin=3, node_end=16, name="", is_runway=False, icao_width=IcaoWidth.A),
-                      TaxiRouteEdge(node_begin=15, node_end=8, name="B", is_runway=False, icao_width=IcaoWidth.B),
-                      TaxiRouteEdge(node_begin=23, node_end=9, name="D", is_runway=False, icao_width=IcaoWidth.B),
-                      TaxiRouteEdge(node_begin=26, node_end=27, name="18/36", is_runway=True, icao_width=None))
+        test_edges = (TaxiRouteEdge(node_begin=3, node_end=16, name="", is_runway=False, one_way=False, icao_width=IcaoWidth.A),
+                      TaxiRouteEdge(node_begin=7, node_end=0, name="", is_runway=False, one_way=True, icao_width=IcaoWidth.B),
+                      TaxiRouteEdge(node_begin=15, node_end=8, name="B", is_runway=False, one_way=False, icao_width=IcaoWidth.B),
+                      TaxiRouteEdge(node_begin=23, node_end=9, name="D", is_runway=False, one_way=False, icao_width=IcaoWidth.B),
+                      TaxiRouteEdge(node_begin=26, node_end=27, name="18/36", is_runway=True, one_way=False, icao_width=None))
         self.assertTrue(all(edge in edges
                             for edge in test_edges))
