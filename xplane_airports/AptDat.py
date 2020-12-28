@@ -4,7 +4,7 @@ Tools for reading, inspecting, and manipulating X-Plane’s airport (apt.dat) fi
 
 from contextlib import suppress
 from dataclasses import dataclass, field
-from functools import cached_property
+from functools import lru_cache  # TODO: When we're 3.8 minimum, use cached_property instead
 from operator import attrgetter
 from os import PathLike
 import re
@@ -390,7 +390,8 @@ class Airport:
         elif rwy_0.runway_type == RunwayType.HELIPAD:
             return float(rwy_0.tokens[3])
 
-    @cached_property
+    @property
+    @lru_cache(maxsize=128)
     def atc_network(self) -> TaxiRouteNetwork:
         return TaxiRouteNetwork.from_lines(self.text)
 
