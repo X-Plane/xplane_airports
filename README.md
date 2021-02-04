@@ -1,7 +1,7 @@
 Tools for working with X-Plane airport data
 ============================================================================================================================================================
 
-[![CircleCI](https://circleci.com/gh/X-Plane/xplane_airports/tree/master.svg?style=svg)](https://circleci.com/gh/X-Plane/xplane_airports/tree/master)
+[![CircleCI](https://circleci.com/gh/X-Plane/xplane_airports/tree/main.svg?style=svg)](https://circleci.com/gh/X-Plane/xplane_airports/tree/main)
 
 `xplane_airports` is a Python package for interacting with [X-Plane](https://www.x-plane.com)'s airport data ([`apt.dat`](https://developer.x-plane.com/article/airport-data-apt-dat-file-format-specification/)) files.
 
@@ -396,3 +396,26 @@ I've rewritten the `Airports` class with a few major changes for performance:
 Neither change should affect basically any sane usage of the `Airport` class *except* for construction (but even that you should probably be getting from the `AptDat` class or one of the `Airport` class's static methods!).
 
 Version 4 also utilizes `@functools.cached_property` to cache some potentially-expensive `@property` methods in the `Airport` class. Since `functools` introduced this in Python 3.8, if you're on an earlier Python version, you won't get this caching behavior (you'll get normal properties instead). This is less than ideal, but it works.
+
+## Running the tests (for maintainers)
+
+[We use CircleCI](https://app.circleci.com/pipelines/github/X-Plane/xplane_airports) to run the test suite on every commit.
+
+You can run the same tests that CircleCI does as follows:
+
+1. Doctest the Gateway module: `$ python -m doctest -v xplane_airports/gateway.py`
+2. Unit test the AptDat moduel: `$ python -m unittest discover -s xplane_airports/ -t xplane_airports/ -p test_*.py`
+
+## Publishing package updates to PyPI (for maintainers)
+
+1. Bump the version in setup.py
+2. Activate your virtual environment: `$ source env/bin/activate`
+3. Package it: `$ python3 setup.py sdist bdist_wheel`
+4. Upload
+    - To production: `$ python3 -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*`
+    - To the test server: `$ python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
+5. Confirm all is well: https://pypi.org/project/xplane-airports/
+
+You may also want to upgrade whatever project you have that depends on it: `$ pip3 install --upgrade xplane_airports`
+
+
