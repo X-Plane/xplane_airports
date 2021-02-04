@@ -16,6 +16,30 @@ This includes the following major components:
     - [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt): Downloads either the recommended pack for the specified airport, or the scenery pack with the specified `int` ID. Includes both the `apt.dat` data and DSF, where applicable.
     - [`recommended_scenery_packs()`](#xplane_airportsgatewayrecommended_scenery_packsselective_apt_idsnone---collectionsiterablegatewayapt): A generator equivalent to calling [`scenery_pack()`](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt) to download the recommended scenery pack for every airport (or only a preselected list of airports, at your discretion).
 
+## Table of Contents
+
+* [Installation instructions](#installation-instructions)
+* [Sample code](#sample-code)
+  + [Parsing the default apt.dat file in your local X-Plane installation](#parsing-the-default-aptdat-file-in-your-local-x-plane-installation)
+  + [Getting metadata on airports from the Gateway](#getting-metadata-on-airports-from-the-gateway)
+  + [Downloaded the recommended scenery pack for an airport from the Gateway](#downloaded-the-recommended-scenery-pack-for-an-airport-from-the-gateway)
+* [The `AptDat` module](#the-aptdat-module)
+  + [AptDat.AptDat](#aptdataptdat)
+  + [AptDat.Airport](#aptdatairport)
+  + [AptDat.AptDatLine](#aptdataptdatline)
+  + [AptDat.RunwayType](#aptdatrunwaytype)
+* [The `gateway` module](#the-gateway-module)
+  + [gateway.GatewayApt](#gatewaygatewayapt)
+  + [gateway.GatewayFeature](#gatewaygatewayfeature)
+  + [API wrapping functions](#api-wrapping-functions)
+    - [`xplane_airports.gateway.airport`(_airport\_id_) -> dict](#xplane_airportsgatewayrecommended_scenery_packsselective_apt_idsnone---collectionsiterablegatewayapt)
+    - [`xplane_airports.gateway.airports`() -> dict](#xplane_airportsgatewayairports---dict)
+    - [`xplane_airports.gateway.recommended_scenery_packs`(_selective\_apt\_ids=None_) -> collections.Iterable\[[GatewayApt](#gatewaygatewayapt)\]](#xplane_airportsgatewayrecommended_scenery_packsselective_apt_idsnone---collectionsiterablegatewayapt)
+    - [`xplane_airports.gateway.scenery_pack`(_pack\_to\_download_) -> [GatewayApt](#gatewaygatewayapt)](#xplane_airportsgatewayscenery_packpack_to_download---gatewayapt)
+* [Migration notes](#migration-notes)
+* [Running the tests (for maintainers)](#running-the-tests-for-maintainers)
+* [Publishing package updates to PyPI (for maintainers)](#publishing-package-updates-to-pypi-for-maintainers)
+
 ## Installation instructions
 
 `xplane_airports` requires Python 3.6 or newer.
@@ -232,8 +256,7 @@ Enum for row codes used to identify different types of runways:
 - WATER_RUNWAY
 - HELIPAD
 
-The `gateway` module
-=====================================================================================
+## The `gateway` module
 
 Tools for interfacing with the X-Plane Scenery Gateway’s API.
 
